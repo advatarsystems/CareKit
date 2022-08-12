@@ -43,12 +43,16 @@ public struct OCKHealthKitOutcome: Codable, Equatable, Identifiable, OCKAnyOutco
     public var id: String { taskUUID.uuidString + "_\(taskOccurrenceIndex)" }
     public var taskOccurrenceIndex: Int
     public var values: [OCKOutcomeValue]
+    public var dates: [Date]?
+    public var metadata: [[String : String]]?
+
     public var remoteID: String?
     public var groupIdentifier: String?
     public var notes: [OCKNote]?
 
     /// A record of the HealthKit object that this outcome is derived from. Used for targeted deletions.
-    internal var healthKitUUIDs: Set<UUID>?
+    //internal var healthKitUUIDs: Set<UUID>?
+    public var healthKitUUIDs: Set<UUID>?
 
     /// Initialize by specifying the version of the task that owns this outcome, how many events have occurred before this outcome, and the values.
     ///
@@ -56,17 +60,21 @@ public struct OCKHealthKitOutcome: Codable, Equatable, Identifiable, OCKAnyOutco
     ///   - taskUUID: The UUID of the task that owns this outcome. This ID can be retrieved from any task that has been queried from the store.
     ///   - taskOccurrenceIndex: The number of events that occurred before the event that owns this outcome.
     ///   - values: An array outcome values.
-    public init(taskUUID: UUID, taskOccurrenceIndex: Int, values: [OCKOutcomeValue]) {
+    public init(taskUUID: UUID, taskOccurrenceIndex: Int, values: [OCKOutcomeValue], dates: [Date]? = nil, metadata: [[String : String]]? = nil) {
         self.taskUUID = taskUUID
         self.taskOccurrenceIndex = taskOccurrenceIndex
         self.values = values
+        self.dates = dates
+        self.metadata = metadata
         self.isOwnedByApp = true
     }
 
-    internal init(taskUUID: UUID, taskOccurrenceIndex: Int, values: [OCKOutcomeValue], isOwnedByApp: Bool, healthKitUUIDs: Set<UUID>) {
+    internal init(taskUUID: UUID, taskOccurrenceIndex: Int, values: [OCKOutcomeValue], dates: [Date]? = nil, metadata: [[String : String]]? = nil, isOwnedByApp: Bool, healthKitUUIDs: Set<UUID>) {
         self.taskUUID = taskUUID
         self.taskOccurrenceIndex = taskOccurrenceIndex
         self.values = values
+        self.dates = dates
+        self.metadata = metadata
         self.isOwnedByApp = isOwnedByApp
         self.healthKitUUIDs = healthKitUUIDs
     }

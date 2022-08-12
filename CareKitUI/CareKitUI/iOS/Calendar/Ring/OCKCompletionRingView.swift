@@ -84,6 +84,14 @@ open class OCKCompletionRingView: OCKView {
         imageView.contentMode = .scaleAspectFit
         return imageView
     }()
+    
+    /*
+    let checkmarkImageView: UIImageView = {
+        let image = UIImage(systemName: "5")
+        let imageView = UIImageView(image: image)
+        imageView.contentMode = .scaleAspectFit
+        return imageView
+    }()*/
 
     // MARK: - Methods
 

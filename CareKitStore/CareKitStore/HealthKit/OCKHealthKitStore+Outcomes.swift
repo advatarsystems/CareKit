@@ -169,11 +169,15 @@ public extension OCKHealthKitPassthroughStore {
                 let outcomes = samples.enumerated().compactMap { index, sample -> OCKHealthKitOutcome? in
                     guard !sample.values.isEmpty else { return nil } // Don't return an outcome for events where no HealthKit values exist.
                     let outcomeValues = sample.values.map { OCKOutcomeValue($0, units: task.healthKitLinkage.unit.unitString) }
+                    let outcomeDates = sample.samples.map { $0.startDate }
+                    let metadatas = sample.samples.map { $0.metadata ?? [:]}
                     let correspondingEvent = events[index]
                     let isOwnedByApp = !sample.samples.isEmpty && sample.samples.allSatisfy({ $0.sourceRevision.source == HKSource.default() })
                     return OCKHealthKitOutcome(taskUUID: task.uuid,
                                                taskOccurrenceIndex: correspondingEvent.occurrence,
                                                values: outcomeValues,
+                                               dates: outcomeDates,
+                                               metadata: metadatas as? [[String:String]],
                                                isOwnedByApp: isOwnedByApp,
                                                healthKitUUIDs: Set(sample.samples.map { $0.uuid }))
                 }

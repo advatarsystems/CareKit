@@ -1,10 +1,10 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.7
 import PackageDescription
 
 let package = Package(
     name: "CareKit",
     defaultLocalization: "en",
-    platforms: [.iOS(.v13), .watchOS(.v6)],
+    platforms: [.iOS(.v16), .watchOS(.v6)],
     products: [
         .library(
             name: "CareKit",
