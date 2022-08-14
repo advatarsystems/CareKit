@@ -59,11 +59,9 @@ open class OCKChartTaskController: OCKTaskController {
         var pointValues = [MyChartPoint]()
         var foods = [FoodViewModel]()
         
-        
         for events in taskEvents {
             
             for event in events {
-                
                 if let task = event.task as? OCKHealthKitTask {
                     if task.healthKitLinkage.quantityIdentifier == HKQuantityTypeIdentifier.bloodGlucose {
                         if let outcome = event.outcome {
@@ -82,9 +80,8 @@ open class OCKChartTaskController: OCKTaskController {
                         if let outcome = event.outcome {
                             if let outcome = outcome as? OCKHealthKitOutcome, let dates = outcome.dates {
                                 let count = outcome.values.count
-                                let values = outcome.values
                                 for index in 0..<count {
-                                     if let doubleValue = values[index].doubleValue, let metadata = outcome.metadata {
+                                     if let metadata = outcome.metadata {
                                         let item = metadata[index]
                                         if let name = item["HKFoodType"] {
                                             let food = FoodViewModel(name: name, date: dates[index], score: 0, startGlucose: nil, index: index)

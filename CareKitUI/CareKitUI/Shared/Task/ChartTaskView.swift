@@ -184,7 +184,7 @@ public extension ChartTaskView where Header == _ChartTaskViewHeader, Chart == _C
     /// - Parameter footer: View to inject under the instructions. Specified content will be stacked vertically.
     init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, @ViewBuilder footer: () -> Footer) {
         self.init(isHeaderPadded: true, isFooterPadded: false, instructions: instructions, header: {
-            _ChartTaskViewHeader(title: title, detail: detail)
+            _ChartTaskViewHeader(title: title, detail: detail, action: {})
         }, chart: {
             _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], high: high, mmol: mmol, startDate: startDate, endDate: endDate)
         }, footer: footer)
@@ -218,7 +218,7 @@ public extension ChartTaskView where Header == _ChartTaskViewHeader, Chart == _C
     init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil,  high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, isComplete: Bool, action: @escaping () -> Void = {}) {
        
         self.init(isHeaderPadded: true, isFooterPadded: true, instructions: instructions, foods: foods, header: {
-            _ChartTaskViewHeader(title: title, detail: detail)
+            _ChartTaskViewHeader(title: title, detail: detail, action: action)
         }, chart: {
             _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], high: high, mmol: mmol, startDate: startDate, endDate: endDate)
         }, footer: {
@@ -236,10 +236,17 @@ public struct _ChartTaskViewHeader: View {
 
     fileprivate let title: Text
     fileprivate let detail: Text?
+    fileprivate let action: () -> Void
 
     public var body: some View {
         VStack(alignment: .leading, spacing: style.dimension.directionalInsets1.top) {
-            HeaderView(title: title, detail: detail)
+            HStack {
+                HeaderView(title: title, detail: detail)
+                Spacer()
+                Image(systemName: "chevron.right")
+            }.onTapGesture {
+                action()
+            }
             Divider()
         }
     }
@@ -256,6 +263,9 @@ public struct _ChartTaskViewFooter: View {
     @Environment(\.careKitStyle) private var style
 
     @OSValue<CGFloat>(values: [.watchOS: 8], defaultValue: 14) private var padding
+
+    fileprivate let isComplete: Bool
+    fileprivate let action: () -> Void
 
     public init(isComplete: Bool, action: @escaping () -> Void = {}, title: Text, detail: Text,foods: [FoodViewModel]) {
         self.isComplete = isComplete
@@ -294,8 +304,6 @@ public struct _ChartTaskViewFooter: View {
         .multilineTextAlignment(.center)
     }
 
-    fileprivate let isComplete: Bool
-    fileprivate let action: () -> Void
 
     public var body: some View {
         
@@ -493,11 +501,10 @@ public struct _ChartTaskViewChart: View {
                         x: .value("Day", food.date),
                         y: .value("Sales", food.startGlucose)
                     )
-                    .foregroundStyle(.green)
                     .symbolSize(symbolSize*2)
                     .symbol {
-                        Image(systemName: "\(food.index).circle.fill").foregroundColor(.green).opacity(1.0).zIndex(10)
-                    }
+                        Image(systemName: "\(food.index).circle.fill").opacity(1.0).zIndex(10)
+                    }.foregroundStyle(.green)
                     .opacity(1.0)
                 }
                 

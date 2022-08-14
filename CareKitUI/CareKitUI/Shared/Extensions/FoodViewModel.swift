@@ -42,6 +42,8 @@ public struct FoodViewModel: Identifiable {
         let startDate: Date?
         let endDate: Date?
         
+        fatalError()
+        
         if let date = date {
             startDate = Calendar.current.startOfDay(for: date)
             let oneday: TimeInterval = 24*60*60
@@ -84,4 +86,5 @@ public struct FoodViewModel: Identifiable {
         group.wait(timeout: .distantFuture)
         return entries
     }
+    
 }

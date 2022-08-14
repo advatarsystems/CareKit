@@ -136,7 +136,7 @@ public extension LabeledValueTaskView where Header == _LabeledValueTaskViewHeade
 public enum LabeledValueTaskViewState {
 
     /// The complete state.
-    case complete(_ value: Text, _ label: Text?)
+    case complete(_ value: Text, _ label: Text?, icon: Image? = nil, color: Color? = nil)
 
     /// The incomplete state.
     case incomplete(_ label: Text)
@@ -149,22 +149,43 @@ public struct _LabeledValueTaskViewDetailDisclosure: View {
 
     private var value: Text? {
         switch state {
-        case .complete(let value, _): return value
+        case .complete(let value, _, icon: _, color: _): return value
         case .incomplete: return nil
         }
     }
 
     private var label: Text? {
         switch state {
-        case .complete(_, let label): return label
+        case .complete(_, let label, _, color: _): return label
         case .incomplete(let label): return label
         }
     }
-
-    private var foregroundColor: Color {
+    
+    private var icon: Image? {
         switch state {
-        case .complete: return .accentColor
-        case .incomplete: return .secondary
+        case .complete(_, _, let icon,  color: _): return icon
+        case .incomplete(let icon): return nil
+        }
+    }
+
+    private var color: Color? {
+        switch state {
+        case .complete(_, _, _,  let color): return color
+        case .incomplete(let icon): return nil
+        }
+    }
+    
+    private var foregroundColor: Color {
+        if let color = color {
+            switch state {
+            case .complete: return color
+            case .incomplete: return .secondary
+            }
+        } else {
+            switch state {
+            case .complete: return .accentColor
+            case .incomplete: return .secondary
+            }
         }
     }
 
@@ -174,6 +195,8 @@ public struct _LabeledValueTaskViewDetailDisclosure: View {
                 .font(Font.title.weight(.bold))
             label?
                 .font(Font.caption.weight(.medium))
+            icon?
+                .font(Font.title.weight(.bold))
         }
         .foregroundColor(foregroundColor)
     }

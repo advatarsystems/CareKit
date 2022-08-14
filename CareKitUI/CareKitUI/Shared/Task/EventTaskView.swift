@@ -69,29 +69,32 @@ public struct EventTaskView<Header: View, List: View, Footer: View>: View {
     private let instructions: Text?
 
     public var body: some View {
+        
         CardView {
             VStack(alignment: .leading, spacing: style.dimension.directionalInsets1.top) {
+                /*
                 VStack {
                     header
                 }
-                .if(isCardEnabled && isHeaderPadded) { $0.padding([.horizontal, .top]) }
+                .if(isCardEnabled && isHeaderPadded) { $0.padding([.horizontal, .top]) }*/
 
                 instructions?
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .lineLimit(nil)
                     .if(isCardEnabled) { $0.padding([.horizontal]) }
-            
+                
                 VStack {
                     list
                 }
-                .if(isCardEnabled ) { $0.padding() }
+               // .if(isCardEnabled ) { $0.padding() }
                 
-                
+                /*
                 VStack {
                     footer
                 }
                .if(isCardEnabled && isFooterPadded) { $0.padding([.horizontal, .bottom]) }
+                 */
                 
             }
         }
@@ -125,7 +128,7 @@ public extension EventTaskView where Header == _EventTaskViewHeader, List == _Ev
     /// - Parameter detail: Detail text to display in the header.
     /// - Parameter instructions: Instructions text to display under the header.
     /// - Parameter footer: View to inject under the instructions. Specified content will be stacked vertically.
-    init(title: Text, detail: Text? = nil, instructions: Text? = nil, foods: [FoodViewModel]? = nil,  startDate: Date? = nil, endDate: Date? = nil, @ViewBuilder footer: () -> Footer) {
+    init(title: Text, detail: Text? = nil, instructions: Text? = nil, foods: [FoodViewModel]? = nil, @ViewBuilder footer: () -> Footer) {
 
         self.init(isHeaderPadded: true, isFooterPadded: false, instructions: instructions, header: {
             _EventTaskViewHeader(title: title, detail: detail)
@@ -142,7 +145,7 @@ public extension EventTaskView where Footer == _EventTaskViewFooter, List == _Ev
     /// - Parameter isComplete: True if the button under the instructions is in the completed.
     /// - Parameter action: Action to perform when the button is tapped.
     /// - Parameter header: Header to inject at the top of the card. Specified content will be stacked vertically.
-    init(instructions: Text? = nil, foods: [FoodViewModel]? = nil, startDate: Date? = nil, endDate: Date? = nil, isComplete: Bool, action: @escaping () -> Void = {}, @ViewBuilder header: () -> Header) {
+    init(instructions: Text? = nil, foods: [FoodViewModel]? = nil, isComplete: Bool, action: @escaping () -> Void = {}, @ViewBuilder header: () -> Header) {
         
         self.init(isHeaderPadded: false, isFooterPadded: true, instructions: instructions, header: header, list: {
             _EventTaskViewList(foods: foods ?? [])
@@ -227,12 +230,17 @@ public struct _EventTaskViewList: View {
         self.foods = foods
     }
     
+    public var isEmpty: Bool {
+        return foods.isEmpty
+    }
+    
     public var body: some View {
         
         if foods.isEmpty {
-            VStack {
+            EmptyView()
+            /*VStack {
                 Text("NO FOOD LOGGED")
-            }.frame(height: Double(100.0))
+            }.frame(height: Double(100.0))*/
         } else {
             ScrollView {
                 ForEach(foods) { food in
@@ -242,10 +250,10 @@ public struct _EventTaskViewList: View {
                     LabeledValueTaskView(title: Text(food.name),
                                          detail: Text(time),
                                          state: .complete(Text(String(describing: Int(food.score ?? 0))), nil)
-                    )
+                    )//.frame(height: 50)
                     Divider()
                 }
-            }.frame(height: Double(foods.count)*100.0)
+            }.padding().frame(height: Double(foods.count)*100.0)
         }
     }
 }
