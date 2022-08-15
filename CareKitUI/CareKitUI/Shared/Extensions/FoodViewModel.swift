@@ -33,6 +33,7 @@ public struct FoodViewModel: Identifiable {
     }
     
     static public func get(on date: Date? = nil, unique: Bool = false) -> ([FoodViewModel]) {
+        
         var entries = [FoodViewModel]()
         var cache = [String]()
         let foodType = HKCorrelationType.correlationType(forIdentifier: HKCorrelationTypeIdentifier.food)!
@@ -41,9 +42,7 @@ public struct FoodViewModel: Identifiable {
         var predicate: NSPredicate?
         let startDate: Date?
         let endDate: Date?
-        
-        fatalError()
-        
+               
         if let date = date {
             startDate = Calendar.current.startOfDay(for: date)
             let oneday: TimeInterval = 24*60*60
@@ -83,7 +82,8 @@ public struct FoodViewModel: Identifiable {
         }
         group.enter()
         HKHealthStore().execute(query)
-        group.wait(timeout: .distantFuture)
+        group.wait()
+       //group.wait(timeout: .distantFuture)
         return entries
     }
     

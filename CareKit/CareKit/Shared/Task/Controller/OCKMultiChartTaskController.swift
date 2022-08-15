@@ -87,14 +87,14 @@ open class OCKMultiChartTaskController: OCKTaskController {
                                             instructions: firstEvent.firstTaskInstructions,
                                             action: toggleActionForFirstEvent(errorHandler: errorHandler),
                                             isComplete: firstEvent.isFirstEventComplete,
-                                            values: pointValues, foods: nil)
+                                                values: pointValues, foods: nil, variability: nil, score: nil)
        
         let viewModelLast = ChartTaskViewModel(title: lastEvent.firstEventTitle,
                                             detail: lastEvent.firstEventDetail,
                                             instructions: lastEvent.firstTaskInstructions,
                                             action: toggleActionForFirstEvent(errorHandler: errorHandler),
                                             isComplete: lastEvent.isFirstEventComplete,
-                                            values: pointValues, foods: nil)
+                                            values: pointValues, foods: nil, variability: nil, score: nil)
 
         return [viewModelFirst,viewModelLast ]
         

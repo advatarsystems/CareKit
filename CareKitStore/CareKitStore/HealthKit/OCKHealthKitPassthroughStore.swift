@@ -92,7 +92,10 @@ public final class OCKHealthKitPassthroughStore: OCKEventStore {
     private var activeObserverQueries: [HKSampleType: HKObserverQuery] = [:]
 
     internal func startObservingHealthKit(task: OCKHealthKitTask) {
-        let sampleType = HKSampleType.quantityType(forIdentifier: task.healthKitLinkage.quantityIdentifier)!
+        guard let sampleType = HKSampleType.quantityType(forIdentifier: task.healthKitLinkage.quantityIdentifier) else {
+            print("ERROR: startObservingHealthKit \(task.healthKitLinkage.quantityIdentifier)")
+            return
+        }
         guard !activeObserverQueries.keys.contains(sampleType) else { return }
 
         let observationStartDate = Date()
@@ -122,23 +125,27 @@ public final class OCKHealthKitPassthroughStore: OCKEventStore {
             var observeError: Error?
 
             for task in allTasks {
-                group.enter()
-                let sampleType = HKSampleType.quantityType(forIdentifier: task.healthKitLinkage.quantityIdentifier)!
-                healthStore.enableBackgroundDelivery(for: sampleType, frequency: .immediate) { _, error in
-                    if let error = error {
-                        observeError = error
+                
+                if let sampleType = HKSampleType.quantityType(forIdentifier: task.healthKitLinkage.quantityIdentifier) {
+                    group.enter()
+                    healthStore.enableBackgroundDelivery(for: sampleType, frequency: .immediate) { _, error in
+                        if let error = error {
+                            observeError = error
+                        }
+                        group.leave()
                     }
-                    group.leave()
-                }
-
-                group.notify(queue: .main) { [weak self] in
-                    if let error = observeError {
-                        os_log("Failed to enable background delivery. %{private}@",
-                               log: .store, type: .error, error.localizedDescription)
+                
+                    group.notify(queue: .main) { [weak self] in
+                        if let error = observeError {
+                            os_log("Failed to enable background delivery. %{private}@", log: .store, type: .error, error.localizedDescription)
                         return
+                        }
+                    
+                        allTasks.forEach { self?.startObservingHealthKit(task: $0) }
                     }
+                } else {
+                    os_log("Failed to enable background delivery. %{private}@", log: .store, type: .error, "sampleType")
 
-                    allTasks.forEach { self?.startObservingHealthKit(task: $0) }
                 }
             }
         } catch {

@@ -52,12 +52,14 @@ public struct HeaderView: View {
     private let title: Text
     private let detail: Text?
     private let image: Image?
-
+    private let color: Color?
+    
     public var body: some View {
         HStack(spacing: style.dimension.directionalInsets2.trailing) {
             image?
                 .font(.largeTitle)
-                .foregroundColor(Color(UIColor.lightGray))
+//                .foregroundColor(Color(UIColor.lightGray))
+                .foregroundColor(color ?? Color(UIColor.lightGray))
             VStack(alignment: .leading, spacing: style.dimension.directionalInsets1.top / 4.0) {
                 title
                     .font(.headline)
@@ -76,10 +78,11 @@ public struct HeaderView: View {
     ///   - title: The title text to display above the detail.
     ///   - detail: The detail text to display below the title.
     ///   - image: Detail image to display beside the text.
-    public init(title: Text, detail: Text? = nil, image: Image? = nil) {
+    public init(title: Text, detail: Text? = nil, image: Image?, color: Color? = nil ) {
         self.title = title
         self.detail = detail
         self.image = image
+        self.color = color
     }
 }
 

@@ -182,9 +182,9 @@ public extension ChartTaskView where Header == _ChartTaskViewHeader, Chart == _C
     /// - Parameter detail: Detail text to display in the header.
     /// - Parameter instructions: Instructions text to display under the header.
     /// - Parameter footer: View to inject under the instructions. Specified content will be stacked vertically.
-    init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, @ViewBuilder footer: () -> Footer) {
+    init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, detailDisclosure: Bool = false, @ViewBuilder footer: () -> Footer) {
         self.init(isHeaderPadded: true, isFooterPadded: false, instructions: instructions, header: {
-            _ChartTaskViewHeader(title: title, detail: detail, action: {})
+            _ChartTaskViewHeader(title: title, detail: detail, action: {}, detailDisclosure: detailDisclosure)
         }, chart: {
             _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], high: high, mmol: mmol, startDate: startDate, endDate: endDate)
         }, footer: footer)
@@ -215,10 +215,10 @@ public extension ChartTaskView where Header == _ChartTaskViewHeader, Chart == _C
     /// - Parameter instructions: Instructions text to display under the header.
     /// - Parameter isComplete: True if the button under the instructions is in the completed state.
     /// - Parameter action: Action to perform when the button is tapped.
-    init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil,  high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, isComplete: Bool, action: @escaping () -> Void = {}) {
+    init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil,  high: Double? = nil, mmol: Bool = true, variability: Double? = nil, score: Double? = nil, startDate: Date? = nil, endDate: Date? = nil, detailDisclosure: Bool = false, isComplete: Bool, action: @escaping () -> Void = {}) {
        
         self.init(isHeaderPadded: true, isFooterPadded: true, instructions: instructions, foods: foods, header: {
-            _ChartTaskViewHeader(title: title, detail: detail, action: action)
+            _ChartTaskViewHeader(title: title, detail: detail, action: action, detailDisclosure: detailDisclosure)
         }, chart: {
             _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], high: high, mmol: mmol, startDate: startDate, endDate: endDate)
         }, footer: {
@@ -237,13 +237,21 @@ public struct _ChartTaskViewHeader: View {
     fileprivate let title: Text
     fileprivate let detail: Text?
     fileprivate let action: () -> Void
+    fileprivate let detailDisclosure: Bool
 
     public var body: some View {
         VStack(alignment: .leading, spacing: style.dimension.directionalInsets1.top) {
             HStack {
-                HeaderView(title: title, detail: detail)
+                HeaderView(title: title, detail: detail, image: nil)
                 Spacer()
-                Image(systemName: "chevron.right")
+                if detailDisclosure{ HStack {
+                        Text("84").font(.title).fontWeight(.bold).foregroundColor(Color(UIColor.lightGray))
+                        Image(systemName: "chevron.right")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color(UIColor.lightGray))
+                    }
+                }
             }.onTapGesture {
                 action()
             }
@@ -459,18 +467,14 @@ public struct _ChartTaskViewChart: View {
                 newFoods.append(newFood)
             } else {
                 var prev: MyChartPoint = curve.first!
-                for (index,point) in curve.enumerated().reversed() {
-                    
+                for (_,point) in curve.enumerated().reversed() {
                    // let match = point.date != prev.date && food.date >= prev.date  && food.date <= point.date
-                    
                     if point.date != prev.date, food.date >= prev.date, food.date <= point.date {
                         let newFood = FoodViewModel(name: food.name, date: food.date, score: food.score, startGlucose: point.value, index: findex+1)
                         newFoods.append(newFood)
                     }
                     prev = point
-                    
                 }
-                
             }
         }
         self.foods = newFoods
@@ -501,10 +505,12 @@ public struct _ChartTaskViewChart: View {
                         x: .value("Day", food.date),
                         y: .value("Sales", food.startGlucose)
                     )
-                    .symbolSize(symbolSize*2)
+                    .symbolSize(symbolSize*3)
                     .symbol {
-                        Image(systemName: "\(food.index).circle.fill").opacity(1.0).zIndex(10)
-                    }.foregroundStyle(.green)
+                        Image(systemName: "\(foods.count-food.index+1).circle.fill").opacity(1.0).zIndex(10).background(
+                            Color(UIColor.systemBackground).mask(Circle())
+                          )
+                    }.foregroundStyle(.red)
                     .opacity(1.0)
                 }
                 

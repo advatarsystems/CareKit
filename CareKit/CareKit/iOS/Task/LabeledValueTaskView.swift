@@ -167,6 +167,12 @@ public struct LabeledValueTaskViewModel {
 
     /// The completion state of the view.
     public var state: State
+    
+    public init(title: String, detail: String? = nil, state: State) {
+        self.title = title
+        self.detail = detail
+        self.state = state
+    }
 }
 
 public extension LabeledValueTaskViewModel {

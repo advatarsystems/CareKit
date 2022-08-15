@@ -145,7 +145,7 @@ public struct _SimpleTaskViewHeader: View {
     fileprivate let detail: Text?
 
     public var body: some View {
-        HeaderView(title: title, detail: detail)
+        HeaderView(title: title, detail: detail, image: nil)
     }
 }
 

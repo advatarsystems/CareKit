@@ -30,6 +30,8 @@
 import Foundation
 import SwiftUI
 import Charts
+//import CareKit
+//import CareKitUI
 
 /// A card that displays a header view, multi-line label, and a completion button.
 ///
@@ -69,7 +71,11 @@ public struct EventTaskView<Header: View, List: View, Footer: View>: View {
     private let instructions: Text?
 
     public var body: some View {
-        
+        VStack {
+            list
+        }
+
+        /*
         CardView {
             VStack(alignment: .leading, spacing: style.dimension.directionalInsets1.top) {
                 /*
@@ -97,7 +103,7 @@ public struct EventTaskView<Header: View, List: View, Footer: View>: View {
                  */
                 
             }
-        }
+        }*/
     }
 
     // MARK: - Init
@@ -131,7 +137,7 @@ public extension EventTaskView where Header == _EventTaskViewHeader, List == _Ev
     init(title: Text, detail: Text? = nil, instructions: Text? = nil, foods: [FoodViewModel]? = nil, @ViewBuilder footer: () -> Footer) {
 
         self.init(isHeaderPadded: true, isFooterPadded: false, instructions: instructions, header: {
-            _EventTaskViewHeader(title: title, detail: detail)
+            _EventTaskViewHeader(title: title, detail: detail, index: 1)
         }, list: {
             _EventTaskViewList( foods: foods ?? [])
         }, footer: footer)
@@ -166,7 +172,7 @@ public extension EventTaskView where Header == _EventTaskViewHeader, List == _Ev
     init(title: Text, detail: Text? = nil, instructions: Text? = nil, foods: [FoodViewModel]? = nil,   isComplete: Bool, action: @escaping () -> Void = {}) {
        
         self.init(isHeaderPadded: true, isFooterPadded: true, instructions: instructions, foods: foods, header: {
-            _EventTaskViewHeader(title: title, detail: detail)
+            _EventTaskViewHeader(title: title, detail: detail, index: 2)
         }, list: {
             _EventTaskViewList(foods: foods ?? [])
         }, footer: {
@@ -176,6 +182,48 @@ public extension EventTaskView where Header == _EventTaskViewHeader, List == _Ev
     }
 }
 
+private struct _EventHeaderView: View {
+
+    // MARK: - Properties
+
+    @Environment(\.careKitStyle) private var style
+
+    private let title: Text
+    private let detail: Text?
+    private let image: Image?
+    
+    public var body: some View {
+        HStack(spacing: style.dimension.directionalInsets2.trailing) {
+            image?
+                .font(.largeTitle)
+                .foregroundColor(Color(UIColor.lightGray))
+            VStack(alignment: .leading, spacing: style.dimension.directionalInsets1.top / 4.0) {
+                title
+                    .font(.headline)
+                    .fontWeight(.bold)
+                detail?
+                    .font(.caption)
+                    .fontWeight(.medium)
+            }.foregroundColor(Color.primary)
+        }
+    }
+
+    // MARK: - Init
+
+    /// Create an instance.
+    /// - Parameters:
+    ///   - title: The title text to display above the detail.
+    ///   - detail: The detail text to display below the title.
+    ///   - image: Detail image to display beside the text.
+    init(title: Text, detail: Text? = nil, image: Image? = nil) {
+        self.title = title
+        self.detail = detail
+        self.image = image
+    }
+}
+
+// NOTE: This is not being used. It is a header for the list of events
+
 /// The default header used by a `EventTaskView`.
 public struct _EventTaskViewHeader: View {
 
@@ -183,10 +231,30 @@ public struct _EventTaskViewHeader: View {
 
     fileprivate let title: Text
     fileprivate let detail: Text?
-
+    fileprivate let image: Image?
+    fileprivate let index: Int?
+    
+    init(title: Text,detail: Text?, index: Int? = nil) {
+        self.title = title
+        self.detail = detail
+        self.index = index
+        if let index = index {
+            self.image = Image(systemName: "\(index)circle.fill")
+        } else {
+            self.image = nil
+        }
+   }
+    
     public var body: some View {
+        
         VStack(alignment: .leading, spacing: style.dimension.directionalInsets1.top) {
-            HeaderView(title: title, detail: detail)
+            HStack {
+                HeaderView(title: title, detail: detail, image: image)
+                Spacer()
+                Image(systemName: "chevron.right")
+            }.onTapGesture {
+                print("EVENT: _EventHeaderView tapped")
+            }
             Divider()
         }
     }
@@ -242,18 +310,24 @@ public struct _EventTaskViewList: View {
                 Text("NO FOOD LOGGED")
             }.frame(height: Double(100.0))*/
         } else {
-            ScrollView {
-                ForEach(foods) { food in
+            //ScrollView {
+                ForEach(foods.reversed()) { food in
                     let hour = Calendar.current.component(.hour, from: food.date)
                     let minute = Calendar.current.component(.minute, from: food.date)
                     let time = "\(hour < 10 ? "0":"")\(hour):\(minute < 10 ? "0":"")\(minute)"
-                    LabeledValueTaskView(title: Text(food.name),
-                                         detail: Text(time),
-                                         state: .complete(Text(String(describing: Int(food.score ?? 0))), nil)
-                    )//.frame(height: 50)
-                    Divider()
+                    let image = Image(systemName: "\(foods.count - food.index).circle.fill")
+                    let score = Int(food.score ?? 0)
+                    let hasScore = score > 1
+                    Spacer()
+                    CareKitUI.LabeledValueTaskView(title: Text(food.name),
+                                                   detail: Text(time),
+                                                   image: image,
+                                                   state: hasScore ? .complete(Text(String(describing: score)), nil,icon: Image(systemName: "chevron.right") ,
+                                                                               color: Color(UIColor.lightGray)) : .incomplete(Text("PENDING")))
+                                                   
+                   // Divider()
                 }
-            }.padding().frame(height: Double(foods.count)*100.0)
+            //}.padding().frame(height: Double(foods.count)*100.0)
         }
     }
 }

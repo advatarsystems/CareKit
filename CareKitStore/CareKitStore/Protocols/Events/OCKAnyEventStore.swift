@@ -150,9 +150,14 @@ public extension OCKAnyReadOnlyEventStore {
         for _ in 0..<numberOfDays {
             days.append([])
         }
+        // TODO: Figure out why dayIndex == -1 sometimes
         for event in events {
             let dayIndex = grabDayIndex(event.scheduleEvent.start)
-            days[dayIndex].append(event)
+            if dayIndex < days.count && dayIndex >= 0 {
+                days[dayIndex].append(event)
+            } else {
+                print("dayIndex \(dayIndex)")
+            }
         }
         return days
     }

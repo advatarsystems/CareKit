@@ -186,7 +186,7 @@ public struct _MultiChartTaskViewHeader: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: style.dimension.directionalInsets1.top) {
-            HeaderView(title: title, detail: detail)
+            HeaderView(title: title, detail: detail, image: nil)
             Divider()
         }
     }

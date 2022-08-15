@@ -191,5 +191,9 @@ public struct ChartTaskViewModel {
     public let values: [MyChartPoint]?
         
     public let foods: [FoodViewModel]?
+    
+    public let variability: Double?
+    
+    public let score: Double?
 
 }

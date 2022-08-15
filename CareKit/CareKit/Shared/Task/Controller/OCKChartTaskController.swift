@@ -33,6 +33,7 @@ import Foundation
 import CareKitStore
 import CareKitUI
 import HealthKit
+import SigmaSwiftStatistics
 
 open class OCKChartTaskController: OCKTaskController {
 
@@ -56,6 +57,7 @@ open class OCKChartTaskController: OCKTaskController {
         let errorHandler: (Error) -> Void = { [weak self] error in
             self?.error = error
         }
+        var glucoseValues = [Double]()
         var pointValues = [MyChartPoint]()
         var foods = [FoodViewModel]()
         
@@ -70,6 +72,8 @@ open class OCKChartTaskController: OCKTaskController {
                                 let values = outcome.values
                                 for index in 0..<count {
                                     if let doubleValue = values[index].doubleValue {
+                                        glucoseValues.append(doubleValue)
+                                        //print("STATISTICS: \(dates[index])")
                                         let newValue = CareKitUI.MyChartPoint(value: doubleValue, date: dates[index])
                                         pointValues.append(newValue)
                                     }
@@ -92,9 +96,23 @@ open class OCKChartTaskController: OCKTaskController {
                             }
                         }
                     }
-                    
                 }
             }
+        }
+        
+        var variability: Double?
+        var score: Double?
+        
+        if let average = Sigma.average(glucoseValues), let sd = Sigma.standardDeviationSample(glucoseValues) {
+            let isMol = average < 30 // Is it possible to have less than 1.6 mmol/L ?
+            let dev = isMol ? 100*(average-6.1)/(6.1-3.9): 100*(average-110)/(110-70)
+            let cv = sd/average*100.0
+            let devf = (100 + dev)/100.0 // < 1 if below upper limit and then the score is lower
+            print("STATISTICS: average \(average) std \(sd) cv \(cv) dev \(dev) devf \(devf) score \((100.0 - devf*cv))")
+            variability = cv
+            score = 100.0 - devf*cv
+        } else {
+            print("STATISTICS: Could not compute \(String(describing: Sigma.average(glucoseValues))) \(String(describing: Sigma.standardDeviationSample(glucoseValues)))")
         }
         
         return .init(title: taskEvents.firstEventTitle,
@@ -103,6 +121,8 @@ open class OCKChartTaskController: OCKTaskController {
                      action: toggleActionForFirstEvent(errorHandler: errorHandler),
                      isComplete: taskEvents.isFirstEventComplete,
                      values: pointValues,
-                     foods: foods)
+                     foods: foods,
+                     variability: variability,
+                     score: score)
     }
 }

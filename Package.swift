@@ -23,12 +23,13 @@ let package = Package(
             targets: ["CareKitFHIR"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/FHIRModels.git", from: "0.1.0")
+        .package(url: "https://github.com/apple/FHIRModels.git", from: "0.1.0"),
+        .package(url: "https://github.com/evgenyneu/SigmaSwiftStatistics.git", branch: "master")
     ],
     targets: [
         .target(
             name: "CareKit",
-            dependencies: ["CareKitUI", "CareKitStore"],
+            dependencies: ["CareKitUI", "CareKitStore","SigmaSwiftStatistics"],
             path: "CareKit/CareKit",
             exclude: ["Info.plist"]),
 
