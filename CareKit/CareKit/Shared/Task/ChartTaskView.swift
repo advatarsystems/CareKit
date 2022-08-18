@@ -164,7 +164,6 @@ private extension CareKitUI.ChartTaskView where Header == _ChartTaskViewHeader, 
         self.init(title: Text(viewModel?.title ?? ""),
                   detail: viewModel?.detail.map(Text.init),
                   instructions: viewModel?.instructions.map(Text.init),
-                  isComplete: viewModel?.isComplete ?? false,
                   action: viewModel?.action ?? {})
     }
 }
@@ -183,17 +182,22 @@ public struct ChartTaskViewModel {
 
     /// The action to perform when the button is tapped.
     public let action: () -> Void
-
-    /// True if the labeled button is complete.
-    public let isComplete: Bool
     
     /// The values
     public let values: [MyChartPoint]?
         
     public let foods: [FoodViewModel]?
     
-    public let variability: Double?
+    public let average: Double?
     
-    public let score: Double?
+    public let variability: Int?
+
+    public let inRange: Int?
+    
+    public let score: Int?
+    
+    public let glucosePeak: Double
+    
+    public let glucoseDelta: Double
 
 }

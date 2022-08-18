@@ -71,9 +71,10 @@ public struct EventTaskView<Header: View, List: View, Footer: View>: View {
     private let instructions: Text?
 
     public var body: some View {
-        VStack {
+        
+        //VStack {
             list
-        }
+       // }
 
         /*
         CardView {
@@ -239,7 +240,7 @@ public struct _EventTaskViewHeader: View {
         self.detail = detail
         self.index = index
         if let index = index {
-            self.image = Image(systemName: "\(index)circle.fill")
+            self.image = Image(systemName: "\(index).circle.fill")
         } else {
             self.image = nil
         }
@@ -310,23 +311,27 @@ public struct _EventTaskViewList: View {
                 Text("NO FOOD LOGGED")
             }.frame(height: Double(100.0))*/
         } else {
-            //ScrollView {
+            Group {
                 ForEach(foods.reversed()) { food in
+                    // FIXME: Move the extension to here instead. CareKit or CareKitUI? Probably CareKitUI
                     let hour = Calendar.current.component(.hour, from: food.date)
                     let minute = Calendar.current.component(.minute, from: food.date)
                     let time = "\(hour < 10 ? "0":"")\(hour):\(minute < 10 ? "0":"")\(minute)"
                     let image = Image(systemName: "\(foods.count - food.index).circle.fill")
                     let score = Int(food.score ?? 0)
                     let hasScore = score > 1
-                    Spacer()
-                    CareKitUI.LabeledValueTaskView(title: Text(food.name),
-                                                   detail: Text(time),
-                                                   image: image,
-                                                   state: hasScore ? .complete(Text(String(describing: score)), nil,icon: Image(systemName: "chevron.right") ,
-                                                                               color: Color(UIColor.lightGray)) : .incomplete(Text("PENDING")))
-                                                   
-                   // Divider()
+                    //Spacer()
+                    CardView {
+                        CareKitUI.LabeledValueTaskView(title: Text(food.name),
+                                                       detail: Text(time),
+                                                       image: image,
+                                                       state: hasScore ? .complete(Text(String(describing: score)), nil,icon: Image(systemName: "chevron.right") ,
+                                                                                   color: Color(UIColor.lightGray)) : .incomplete(Text("PENDING")))
+                    }
+                    
+                    // Divider()
                 }
+            }
             //}.padding().frame(height: Double(foods.count)*100.0)
         }
     }

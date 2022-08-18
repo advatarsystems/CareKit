@@ -66,7 +66,7 @@ public struct LabeledValueTaskView<Header: View, DetailDisclosure: View>: View {
                 VStack { detailDisclosure }
                     .if(isCardEnabled && isDetailDisclosurePadded) { $0.padding([.vertical, .trailing]) }
             }
-        }
+        }.padding([.top])
     }
 
     // MARK: - Init
@@ -215,7 +215,7 @@ public struct _LabeledValueTaskViewHeader: View {
 }
 
 #if DEBUG
-struct NumericTaskView_Previews: PreviewProvider {
+struct LabeledValueTaskView_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 16) {
             LabeledValueTaskView(title: Text("Heart Rate"), detail: Text("Anytime"),

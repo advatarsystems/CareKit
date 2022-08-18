@@ -81,15 +81,21 @@ open class OCKChartTaskController: OCKTaskController {
                             }
                         }
                     } else if task.healthKitLinkage.quantityIdentifier == HKQuantityTypeIdentifier.dietaryEnergyConsumed {
+                        var prevFood: FoodViewModel?
                         if let outcome = event.outcome {
                             if let outcome = outcome as? OCKHealthKitOutcome, let dates = outcome.dates {
+                                let uuids = outcome.healthKitUUIDs
                                 let count = outcome.values.count
                                 for index in 0..<count {
                                      if let metadata = outcome.metadata {
                                         let item = metadata[index]
-                                        if let name = item["HKFoodType"] {
-                                            let food = FoodViewModel(name: name, date: dates[index], score: 0, startGlucose: nil, index: index)
-                                            foods.append(food)
+                                        //print("SCORE: metadata \(metadata) item \(item)")
+                                         if let name = item["HKFoodType"] {
+                                            let food = FoodViewModel(name: name, date: dates[index], score: nil, index: index, energyUUID: uuids?.first)
+                                             if prevFood?.name != food.name && prevFood?.date != food.date {
+                                                 foods.append(food)
+                                                 prevFood = food
+                                             }
                                         }
                                     }
                                 }
@@ -100,29 +106,129 @@ open class OCKChartTaskController: OCKTaskController {
             }
         }
         
-        var variability: Double?
-        var score: Double?
-        
-        if let average = Sigma.average(glucoseValues), let sd = Sigma.standardDeviationSample(glucoseValues) {
-            let isMol = average < 30 // Is it possible to have less than 1.6 mmol/L ?
-            let dev = isMol ? 100*(average-6.1)/(6.1-3.9): 100*(average-110)/(110-70)
-            let cv = sd/average*100.0
+        var average: Double?
+        var variability: Int?
+        var score: Int?
+        var inRange: Int?
+        var glucosePeak: Double = 0.0
+        var glucoseDelta: Double = 0.0
+        var timeToBaseline: Double = 0.0
+ 
+        if let firstValue = pointValues.first, let lastValue = pointValues.last, let avg = Sigma.average(glucoseValues), let sd = Sigma.standardDeviationSample(glucoseValues) {
+            
+            // FIXME: Maybe heuristic a bit too fragile? But an average less than 30 mg/dl is severly hypoglycemic. On the other hand some people might be using mmol and average above 30 mmol/l (540 mg/dl). The Libre app does not show values above 21 mmol/l
+            
+            /*
+             
+             Variability can be 0-100
+             Average can be whatever. It is good if below 6.1 but above 4.0.
+             
+             Say it is an x2 function where 4.0 is 100 and 6.1 is 90
+             f(x)=ax2+bx+c
+             f(4) = 100
+             f(6.1) = 90
+             
+             a16+4b+c=100
+             37.1a+6.1b+c=90
+             
+             In Range is easy
+             
+             How do we weigh them together?
+             
+             Just an average of the three?
+             
+             */
+            let isMol = avg < 30 // Is it possible to have less than 1.6 mmol/L ?
+            let dev = isMol ? 100*(avg-6.1)/(6.1-4.0): 100*(avg-110)/(110-72)
+            let cv = sd/avg*100.0
             let devf = (100 + dev)/100.0 // < 1 if below upper limit and then the score is lower
-            print("STATISTICS: average \(average) std \(sd) cv \(cv) dev \(dev) devf \(devf) score \((100.0 - devf*cv))")
-            variability = cv
-            score = 100.0 - devf*cv
+            print("STATISTICS: average \(avg) std \(sd) cv \(cv) dev \(dev) devf \(devf) score \((100.0 - devf*cv))")
+            variability = Int(cv)
+            average = avg
+            
+            var avgmmol = avg
+            if !isMol {
+                avgmmol = avg/18.0
+            }
+            
+            var avgscore = 0.0
+            if avgmmol >= 4.0 && avgmmol <= 6.1 {
+                avgscore = 120.0 - 5.0 * avgmmol
+            } else if avgmmol > 6.1 {
+                avgscore = 90.0/16.0*avgmmol*avgmmol-450.0/4.0*avgmmol+1125.0/2.0
+            } else if avgmmol < 4.0 {
+                avgscore = 100.0/16.0*avgmmol*avgmmol
+            }
+            
+            var above = 0
+            var below = 0
+            if isMol {
+                for value in glucoseValues {
+                    if value > glucosePeak {
+                        glucosePeak = value
+                    }
+                    if value > 6.1 {
+                        above += 1
+                    } else if value < 4.0 {
+                        below += 1
+                    }
+                }
+            } else {
+                for value in glucoseValues {
+                    if value > glucosePeak {
+                        glucosePeak = value
+                    }
+                    if value > 110 {
+                        above += 1
+                    } else if value < 72 {
+                        below += 1
+                    }
+                }
+            }
+            
+            let ir = 100.0*Double(glucoseValues.count-above-below)/Double(glucoseValues.count)
+            inRange = Int(ir)
+            
+            score = Int((avgscore + (100.0-cv) + ir)/3.0)
+            
+            print("STATISTICS: average \(avg) std \(sd) cv \(cv) \(100-cv) avgscore \(avgscore)  inRange \(ir) score \(score)")
+            
+            
+            // We have foods and the first one is the one we are actuall monitoring
+            if let firstFood = foods.first {
+                print("STATISTICS: firstFood \(firstFood)")
+                
+                
+                
+                
+            }
+            
+            
+            // Find when back to baseline
+            
+            
+            print("STATISTICS: baseline start \(firstValue.value)@\(firstValue.date) ")
+            glucoseDelta = lastValue.value - firstValue.value
+            print("STATISTICS: glucosePeak \(glucosePeak) glucoseDelta \(glucoseDelta)")
+
+
         } else {
             print("STATISTICS: Could not compute \(String(describing: Sigma.average(glucoseValues))) \(String(describing: Sigma.standardDeviationSample(glucoseValues)))")
         }
         
+        
         return .init(title: taskEvents.firstEventTitle,
                      detail: taskEvents.firstEventDetail,
                      instructions: taskEvents.firstTaskInstructions,
-                     action: toggleActionForFirstEvent(errorHandler: errorHandler),
-                     isComplete: taskEvents.isFirstEventComplete,
+                     action: {},
                      values: pointValues,
                      foods: foods,
+                     average: average,
                      variability: variability,
-                     score: score)
+                     inRange: inRange,
+                     score: score,
+                     glucosePeak: glucosePeak,
+                     glucoseDelta: glucoseDelta
+        )
     }
 }

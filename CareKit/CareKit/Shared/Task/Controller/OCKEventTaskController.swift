@@ -69,7 +69,7 @@ open class OCKEventTaskController: OCKTaskController {
                                      if let metadata = outcome.metadata {
                                         let item = metadata[index]
                                         if let name = item["HKFoodType"] {
-                                            let food = FoodViewModel(name: name, date: dates[index], score: 0, startGlucose: nil, index: index)
+                                            let food = FoodViewModel(name: name, date: dates[index], score: 0, index: index)
                                             foods.append(food)
                                         }
                                     }

@@ -32,8 +32,8 @@ import SwiftUI
 import Charts
 
 public class MyChartPoint {
-    let value: Double
-    let date: Date
+    public let value: Double
+    public let date: Date
     public init(value: Double, date: Date) {
         self.value = value
         self.date = date
@@ -139,11 +139,11 @@ public struct ChartTaskView<Header: View, Chart: View, Footer: View>: View {
                  */
      
                 // Fixme: Maybe to show average, variablity etc?
-                /*
+                
                 VStack {
                     footer
-                }*/
-               // .if(isCardEnabled && isFooterPadded) { $0.padding([.horizontal, .bottom]) }
+                }
+               .if(isCardEnabled && isFooterPadded) { $0.padding([.horizontal, .bottom]) }
                 
             }
         }
@@ -182,9 +182,9 @@ public extension ChartTaskView where Header == _ChartTaskViewHeader, Chart == _C
     /// - Parameter detail: Detail text to display in the header.
     /// - Parameter instructions: Instructions text to display under the header.
     /// - Parameter footer: View to inject under the instructions. Specified content will be stacked vertically.
-    init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, detailDisclosure: Bool = false, @ViewBuilder footer: () -> Footer) {
+    init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, showScore: Bool = false, detailDisclosure: Bool = false, @ViewBuilder footer: () -> Footer) {
         self.init(isHeaderPadded: true, isFooterPadded: false, instructions: instructions, header: {
-            _ChartTaskViewHeader(title: title, detail: detail, action: {}, detailDisclosure: detailDisclosure)
+            _ChartTaskViewHeader(title: title, detail: detail, action: {}, showScore: showScore, detailDisclosure: detailDisclosure, score: 0)
         }, chart: {
             _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], high: high, mmol: mmol, startDate: startDate, endDate: endDate)
         }, footer: footer)
@@ -195,14 +195,11 @@ public extension ChartTaskView where Footer == _ChartTaskViewFooter, Chart == _C
 
     /// Create an instance.
     /// - Parameter instructions: Instructions text to display under the header.
-    /// - Parameter isComplete: True if the button under the instructions is in the completed.
-    /// - Parameter action: Action to perform when the button is tapped.
-    /// - Parameter header: Header to inject at the top of the card. Specified content will be stacked vertically.
-    init(instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, isComplete: Bool, action: @escaping () -> Void = {}, @ViewBuilder header: () -> Header) {
+    init(instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, @ViewBuilder header: () -> Header) {
         self.init(isHeaderPadded: false, isFooterPadded: true, instructions: instructions, header: header, chart: {
             _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], high: high, mmol: mmol, startDate: startDate,endDate: endDate)
         },footer: {
-            _ChartTaskViewFooter(isComplete: isComplete, action: action, title: Text("title"), detail: Text("detail"), foods: foods ?? [])
+            _ChartTaskViewFooter(title: Text("title"), detail: Text("detail"))
         })
     }
 }
@@ -213,16 +210,14 @@ public extension ChartTaskView where Header == _ChartTaskViewHeader, Chart == _C
     /// - Parameter title: Title text to display in the header.
     /// - Parameter detail: Detail text to display in the header.
     /// - Parameter instructions: Instructions text to display under the header.
-    /// - Parameter isComplete: True if the button under the instructions is in the completed state.
-    /// - Parameter action: Action to perform when the button is tapped.
-    init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil,  high: Double? = nil, mmol: Bool = true, variability: Double? = nil, score: Double? = nil, startDate: Date? = nil, endDate: Date? = nil, detailDisclosure: Bool = false, isComplete: Bool, action: @escaping () -> Void = {}) {
+    init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil,  high: Double? = nil, mmol: Bool = true, average: Double? = nil, variability: Int? = nil, inRange: Int? = nil, score: Int? = nil, startDate: Date? = nil, endDate: Date? = nil, showScore: Bool = false, detailDisclosure: Bool = false, action: @escaping () -> Void = {}) {
        
         self.init(isHeaderPadded: true, isFooterPadded: true, instructions: instructions, foods: foods, header: {
-            _ChartTaskViewHeader(title: title, detail: detail, action: action, detailDisclosure: detailDisclosure)
+            _ChartTaskViewHeader(title: title, detail: detail, action: action, showScore: showScore, detailDisclosure: detailDisclosure, score: score)
         }, chart: {
             _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], high: high, mmol: mmol, startDate: startDate, endDate: endDate)
         }, footer: {
-            _ChartTaskViewFooter(isComplete: isComplete, action: action, title: Text("title"), detail: Text("detail"), foods: foods ?? [])
+            _ChartTaskViewFooter(title: Text("title"), detail: Text("detail"), average: average, variability: variability, inRange: inRange, score: score)
         })
         
        
@@ -237,15 +232,24 @@ public struct _ChartTaskViewHeader: View {
     fileprivate let title: Text
     fileprivate let detail: Text?
     fileprivate let action: () -> Void
+    fileprivate let showScore: Bool
     fileprivate let detailDisclosure: Bool
+    fileprivate let score: Int?
 
     public var body: some View {
         VStack(alignment: .leading, spacing: style.dimension.directionalInsets1.top) {
             HStack {
                 HeaderView(title: title, detail: detail, image: nil)
                 Spacer()
-                if detailDisclosure{ HStack {
-                        Text("84").font(.title).fontWeight(.bold).foregroundColor(Color(UIColor.lightGray))
+                HStack {
+                    
+                    if showScore, let score = score {
+                        Text(String(score))
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color(UIColor.lightGray))
+                    }
+                    if detailDisclosure{
                         Image(systemName: "chevron.right")
                             .font(.title)
                             .fontWeight(.bold)
@@ -265,76 +269,49 @@ public struct _ChartTaskViewFooter: View {
 
     fileprivate let title: Text
     fileprivate let detail: Text?
-    private let foods: [FoodViewModel]
-
+ 
     @Environment(\.sizeCategory) private var sizeCategory
     @Environment(\.careKitStyle) private var style
 
     @OSValue<CGFloat>(values: [.watchOS: 8], defaultValue: 14) private var padding
 
-    fileprivate let isComplete: Bool
-    fileprivate let action: () -> Void
+    fileprivate let average: Double?
+    fileprivate let variability: Int?
+    fileprivate let inRange: Int?
+    fileprivate let score: Int?
 
-    public init(isComplete: Bool, action: @escaping () -> Void = {}, title: Text, detail: Text,foods: [FoodViewModel]) {
-        self.isComplete = isComplete
-        self.action = action
+    public init(title: Text, detail: Text, average: Double? = 5.0, variability: Int? = 12, inRange: Int? = 98, score: Int? = 50) {
         self.title = title
         self.detail = detail
-        self.foods = foods
+        if let average = average {
+            self.average = round(average * 10) / 10.0
+        } else {
+            self.average = nil
+        }
+        self.variability = variability
+        self.inRange = inRange
+        self.score = score
     }
     
-    private var content: some View {
-        
-        VStack {
-            ForEach(foods) { food in
-                let hour = Calendar.current.component(.hour, from: food.date)
-                let minute = Calendar.current.component(.minute, from: food.date)
-                let time = "\(hour):\(minute)"
-                LabeledValueTaskView(title: Text(food.name),
-                                     detail: Text(time),
-                                     state: .complete(Text(String(describing: Int(food.score ?? 0))), nil)
-                )
-            }
-        }
-    }
-    
-    private var xcontent: some View {
-        Group {
-            if isComplete {
-                HStack {
-                    Text(loc("COMPLETED"))
-                    Image(systemName: "checkmark")
-                }
-            } else {
-                Text(loc("MARK_COMPLETE"))
-            }
-        }
-        .multilineTextAlignment(.center)
-    }
-
-
     public var body: some View {
-        
-        content
-        
-        /*
-        HStack {
-            Spacer()
-            content
-            Spacer()
-        }.padding(padding.scaled())
-        */
-        
-        /*Button(action: action) {
-            RectangularCompletionView(isComplete: isComplete) {
-                HStack {
-                    Spacer()
-                    content
-                    Spacer()
-                }.padding(padding.scaled())
-            }
-        }.buttonStyle(NoHighlightStyle())
-         */
+        if let average = average, let variability = variability, let inRange = inRange, let score = score {
+            HStack {
+                Group {
+                    Group {
+                        Text("Avg: ")
+                        Text(String(average)).fontWeight(.bold)
+                        Spacer()
+                        Text("Var: ")
+                        Text(String(variability)+"%").fontWeight(.bold)
+                        Spacer()
+                        Text("Rng: ")
+                        Text(String(inRange)+"%").fontWeight(.bold)
+                    }
+                }
+            }.font(.caption)
+        } else {
+            EmptyView()
+        }
     }
 }
 
@@ -477,7 +454,9 @@ public struct _ChartTaskViewChart: View {
                 }
             }
         }
-        self.foods = newFoods
+        print("ADD: \(newFoods.count) \(min(newFoods.count,4))")
+        let maxCount = min(newFoods.count,4)
+        self.foods = Array(newFoods[0..<maxCount])
     }
     
     public var body: some View {
@@ -621,308 +600,9 @@ public struct _ChartTaskViewChart: View {
 struct ChartTaskView_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 20) {
-            ChartTaskView(title: Text("Title"), detail: Text("Detail"), instructions: Text("Instructions"), isComplete: false)
-            ChartTaskView(title: Text("Title"), detail: Text("Detail"), instructions: Text("Instructions"), isComplete: true)
+            ChartTaskView(title: Text("Title"), detail: Text("Detail"), instructions: Text("Instructions"))
+            ChartTaskView(title: Text("Title"), detail: Text("Detail"), instructions: Text("Instructions"))
         }.padding()
     }
 }
 #endif
-
-/*
-func date(year: Int, month: Int, day: Int = 1) -> Date {
-    Calendar.current.date(from: DateComponents(year: year, month: month, day: day)) ?? Date()
-}
-
-func date(year: Int, month: Int, day: Int , hour: Int, minute: Int ) -> Date {
-    Calendar.current.date(from: DateComponents(year: year, month: month, day: day, hour: hour, minute: minute)) ?? Date()
-}
-
-/// Data for the top style charts.
-struct TopStyleData {
-    /// Sales by pancake style for the last 30 days, sorted by amount.
-    static let last30Days = [
-        (name: "Cachapa", sales: 916),
-        (name: "Injera", sales: 850),
-        (name: "Crêpe", sales: 802),
-        (name: "Jian Bing", sales: 753),
-        (name: "Dosa", sales: 654),
-        (name: "American", sales: 618)
-    ]
-
-    /// Sales by pancake style for the last 12 months, sorted by amount.
-    static let last12Months = [
-        (name: "Cachapa", sales: 9631),
-        (name: "Crêpe", sales: 7959),
-        (name: "Injera", sales: 7891),
-        (name: "Jian Bing", sales: 7506),
-        (name: "American", sales: 6777),
-        (name: "Dosa", sales: 6325)
-    ]
-}
-
-/// Data for the daily and monthly sales charts.
-struct SalesData {
-    /// Sales by day for the last 30 days.
-    static let last30Days = [
-        (day: date(year: 2022, month: 5, day: 8), sales: 168),
-        (day: date(year: 2022, month: 5, day: 9), sales: 117),
-        (day: date(year: 2022, month: 5, day: 10), sales: 106),
-        (day: date(year: 2022, month: 5, day: 11), sales: 119),
-        (day: date(year: 2022, month: 5, day: 12), sales: 109),
-        (day: date(year: 2022, month: 5, day: 13), sales: 104),
-        (day: date(year: 2022, month: 5, day: 14), sales: 196),
-        (day: date(year: 2022, month: 5, day: 15), sales: 172),
-        (day: date(year: 2022, month: 5, day: 16), sales: 122),
-        (day: date(year: 2022, month: 5, day: 17), sales: 115),
-        (day: date(year: 2022, month: 5, day: 18), sales: 138),
-        (day: date(year: 2022, month: 5, day: 19), sales: 110),
-        (day: date(year: 2022, month: 5, day: 20), sales: 106),
-        (day: date(year: 2022, month: 5, day: 21), sales: 187),
-        (day: date(year: 2022, month: 5, day: 22), sales: 187),
-        (day: date(year: 2022, month: 5, day: 23), sales: 119),
-        (day: date(year: 2022, month: 5, day: 24), sales: 160),
-        (day: date(year: 2022, month: 5, day: 25), sales: 144),
-        (day: date(year: 2022, month: 5, day: 26), sales: 152),
-        (day: date(year: 2022, month: 5, day: 27), sales: 148),
-        (day: date(year: 2022, month: 5, day: 28), sales: 240),
-        (day: date(year: 2022, month: 5, day: 29), sales: 242),
-        (day: date(year: 2022, month: 5, day: 30), sales: 173),
-        (day: date(year: 2022, month: 5, day: 31), sales: 143),
-        (day: date(year: 2022, month: 6, day: 1), sales: 137),
-        (day: date(year: 2022, month: 6, day: 2), sales: 123),
-        (day: date(year: 2022, month: 6, day: 3), sales: 146),
-        (day: date(year: 2022, month: 6, day: 4), sales: 214),
-        (day: date(year: 2022, month: 6, day: 5), sales: 250),
-        (day: date(year: 2022, month: 6, day: 6), sales: 146)
-    ]
-
-    /// Total sales for the last 30 days.
-    static var last30DaysTotal: Int {
-        last30Days.map { $0.sales }.reduce(0, +)
-    }
-
-    static var last30DaysAverage: Double {
-        Double(last30DaysTotal / last30Days.count)
-    }
-
-    /// Sales by month for the last 12 months.
-    static let last12Months = [
-        (month: date(year: 2021, month: 7), sales: 3952, dailyAverage: 127, dailyMin: 95, dailyMax: 194),
-        (month: date(year: 2021, month: 8), sales: 4044, dailyAverage: 130, dailyMin: 96, dailyMax: 189),
-        (month: date(year: 2021, month: 9), sales: 3930, dailyAverage: 131, dailyMin: 101, dailyMax: 184),
-        (month: date(year: 2021, month: 10), sales: 4217, dailyAverage: 136, dailyMin: 96, dailyMax: 193),
-        (month: date(year: 2021, month: 11), sales: 4006, dailyAverage: 134, dailyMin: 104, dailyMax: 202),
-        (month: date(year: 2021, month: 12), sales: 3994, dailyAverage: 129, dailyMin: 96, dailyMax: 190),
-        (month: date(year: 2022, month: 1), sales: 4202, dailyAverage: 136, dailyMin: 96, dailyMax: 203),
-        (month: date(year: 2022, month: 2), sales: 3749, dailyAverage: 134, dailyMin: 98, dailyMax: 200),
-        (month: date(year: 2022, month: 3), sales: 4329, dailyAverage: 140, dailyMin: 104, dailyMax: 218),
-        (month: date(year: 2022, month: 4), sales: 4084, dailyAverage: 136, dailyMin: 93, dailyMax: 221),
-        (month: date(year: 2022, month: 5), sales: 4559, dailyAverage: 147, dailyMin: 104, dailyMax: 242),
-        (month: date(year: 2022, month: 6), sales: 1023, dailyAverage: 170, dailyMin: 120, dailyMax: 250)
-    ]
-
-    /// Total sales for the last 12 months.
-    static var last12MonthsTotal: Int {
-        last12Months.map { $0.sales }.reduce(0, +)
-    }
-
-    static var last12MonthsDailyAverage: Int {
-        last12Months.map { $0.dailyAverage }.reduce(0, +) / last12Months.count
-    }
-}
-
-/// Data for the sales by location and weekday charts.
-struct LocationData {
-    /// A data series for the lines.
-    struct Series: Identifiable {
-        /// The name of the city.
-        let city: String
-
-        /// Average daily sales for each weekday.
-        /// The `weekday` property is a `Date` that represents a weekday.
-        let sales: [(weekday: Date, sales: Int)]
-
-        /// The identifier for the series.
-        var id: String { city }
-    }
-
-    /// Sales by location and weekday for the last 30 days.
-    static let last30Days: [Series] = [
-        .init(city: "100%", sales: [
-            (weekday: date(year: 2022, month: 5, day: 2), sales: 54),
-            (weekday: date(year: 2022, month: 5, day: 3), sales: 42),
-            (weekday: date(year: 2022, month: 5, day: 4), sales: 88),
-            (weekday: date(year: 2022, month: 5, day: 5), sales: 49),
-            (weekday: date(year: 2022, month: 5, day: 6), sales: 42),
-            (weekday: date(year: 2022, month: 5, day: 7), sales: 125),
-            (weekday: date(year: 2022, month: 5, day: 8), sales: 67)
-
-        ]),
-        .init(city: "95%", sales: [
-            (weekday: date(year: 2022, month: 5, day: 2), sales: 81),
-            (weekday: date(year: 2022, month: 5, day: 3), sales: 90),
-            (weekday: date(year: 2022, month: 5, day: 4), sales: 52),
-            (weekday: date(year: 2022, month: 5, day: 5), sales: 72),
-            (weekday: date(year: 2022, month: 5, day: 6), sales: 84),
-            (weekday: date(year: 2022, month: 5, day: 7), sales: 84),
-            (weekday: date(year: 2022, month: 5, day: 8), sales: 137)
-        ])
-    ]
-
-    /// The best weekday and location for the last 30 days.
-    static let last30DaysBest = (
-        city: "95%",
-        weekday: date(year: 2022, month: 5, day: 8),
-        sales: 137
-    )
-
-    /// The best weekday and location for the last 12 months.
-    static let last12MonthsBest = (
-        city: "95%",
-        weekday: date(year: 2022, month: 5, day: 8),
-        sales: 113
-    )
-
-    /// Sales by location and weekday for the last 12 months.
-    static let last12Months: [Series] = [
-        .init(city: "100%", sales: [
-            (weekday: date(year: 2022, month: 5, day: 2), sales: 64),
-            (weekday: date(year: 2022, month: 5, day: 3), sales: 60),
-            (weekday: date(year: 2022, month: 5, day: 4), sales: 47),
-            (weekday: date(year: 2022, month: 5, day: 5), sales: 55),
-            (weekday: date(year: 2022, month: 5, day: 6), sales: 55),
-            (weekday: date(year: 2022, month: 5, day: 7), sales: 105),
-            (weekday: date(year: 2022, month: 5, day: 8), sales: 67)
-        ]),
-        .init(city: "95%", sales: [
-            (weekday: date(year: 2022, month: 5, day: 2), sales: 57),
-            (weekday: date(year: 2022, month: 5, day: 3), sales: 56),
-            (weekday: date(year: 2022, month: 5, day: 4), sales: 66),
-            (weekday: date(year: 2022, month: 5, day: 5), sales: 61),
-            (weekday: date(year: 2022, month: 5, day: 6), sales: 60),
-            (weekday: date(year: 2022, month: 5, day: 7), sales: 77),
-            (weekday: date(year: 2022, month: 5, day: 8), sales: 113)
-        ])
-    ]
-}
-
-enum EventType {
-    case food
-    case drink
-    case medicine
-    case excercise
-    case insulin
-}
-/// Data for the sales by location and weekday charts.
-struct GlucoseData {
-    /// A data series for the lines.
-    struct Series: Identifiable {
-        /// The name of the city.
-        let city: String
-
-        /// Average daily sales for each weekday.
-        /// The `weekday` property is a `Date` that represents a weekday.
-        let sales: [(weekday: Date, sales: Int)]
-        let events:  [(hour: Date, type: EventType, description: String, value: Int)]
-        let glucose: [(hour: Date, sales: Int)]
- 
-        let lineWidth: CGFloat
-        /// The identifier for the series.
-        var id: String { city }
-    }
-
-    /// Sales by location and weekday for the last 30 days.
-    static let last30Days: [Series] = [
-        .init(city: "100%", sales: [
-            (weekday: date(year: 2022, month: 5, day: 2), sales: 54),
-            (weekday: date(year: 2022, month: 5, day: 3), sales: 42),
-            (weekday: date(year: 2022, month: 5, day: 4), sales: 88),
-            (weekday: date(year: 2022, month: 5, day: 5), sales: 49),
-            (weekday: date(year: 2022, month: 5, day: 6), sales: 42),
-            (weekday: date(year: 2022, month: 5, day: 7), sales: 125),
-            (weekday: date(year: 2022, month: 5, day: 8), sales: 67)
-
-        ], events: [], glucose: [], lineWidth: 1),
-        .init(city: "95%", sales: [
-            (weekday: date(year: 2022, month: 5, day: 2), sales: 81),
-            (weekday: date(year: 2022, month: 5, day: 3), sales: 90),
-            (weekday: date(year: 2022, month: 5, day: 4), sales: 52),
-            (weekday: date(year: 2022, month: 5, day: 5), sales: 72),
-            (weekday: date(year: 2022, month: 5, day: 6), sales: 84),
-            (weekday: date(year: 2022, month: 5, day: 7), sales: 84),
-            (weekday: date(year: 2022, month: 5, day: 8), sales: 137)
-        ], events: [], glucose: [], lineWidth: 1)
-    ]
-    
-    /// Sales by location and weekday for the last 30 days.
-    static let today: [Series] = [
-        .init(city: "95%", sales: [
-            (weekday: date(year: 2022, month: 5, day: 2), sales: 81),
-            (weekday: date(year: 2022, month: 5, day: 3), sales: 90),
-            (weekday: date(year: 2022, month: 5, day: 4), sales: 52),
-            (weekday: date(year: 2022, month: 5, day: 5), sales: 72),
-            (weekday: date(year: 2022, month: 5, day: 6), sales: 84),
-            (weekday: date(year: 2022, month: 5, day: 7), sales: 84),
-            (weekday: date(year: 2022, month: 5, day: 8), sales: 137)
-        ], events: [
-            (hour: date(year: 2022, month: 5, day: 8, hour: 5, minute: 10), type: .food,description: "", value: 78),
-            (hour: date(year: 2022, month: 5, day: 8, hour: 12, minute: 10), type: .food,description: "", value: 85)
-        ], glucose: [
-            (hour: date(year: 2022, month: 5, day: 8, hour: 5, minute: 10), sales: 78),
-            (hour: date(year: 2022, month: 5, day: 8, hour: 11, minute: 10), sales: 81),
-            (hour: date(year: 2022, month: 5, day: 8, hour: 12, minute: 10), sales: 85),
-            (hour: date(year: 2022, month: 5, day: 8, hour: 13, minute: 10), sales: 91),
-            (hour: date(year: 2022, month: 5, day: 8, hour: 14, minute: 10), sales: 101),
-            (hour: date(year: 2022, month: 5, day: 8, hour: 24, minute: 10), sales: 61)
-
-        ], lineWidth: 3),
-        .init(city: "Low", sales: [
-           ], events: [], glucose: [
-            (hour: date(year: 2022, month: 5, day: 8, hour: 0, minute: 0), sales: 70),
-            (hour: date(year: 2022, month: 5, day: 8, hour: 24, minute: 0), sales: 70)
-           ], lineWidth: 0.4),
-        .init(city: "High", sales: [
-           ], events: [], glucose: [
-            (hour: date(year: 2022, month: 5, day: 8, hour: 0, minute: 0), sales: 180),
-            (hour: date(year: 2022, month: 5, day: 8, hour: 24, minute: 0), sales: 180)
-           ], lineWidth: 0.4)
-    ]
-
-    
-    /// The best weekday and location for the last 30 days.
-    static let last30DaysBest = (
-        city: "95%",
-        weekday: date(year: 2022, month: 5, day: 8),
-        sales: 137
-    )
-
-    /// The best weekday and location for the last 12 months.
-    static let last12MonthsBest = (
-        city: "95%",
-        weekday: date(year: 2022, month: 5, day: 8),
-        sales: 113
-    )
-
-    /// Sales by location and weekday for the last 12 months.
-    static let last12Months: [Series] = [
-        .init(city: "100%", sales: [
-            (weekday: date(year: 2022, month: 5, day: 2), sales: 64),
-            (weekday: date(year: 2022, month: 5, day: 3), sales: 60),
-            (weekday: date(year: 2022, month: 5, day: 4), sales: 47),
-            (weekday: date(year: 2022, month: 5, day: 5), sales: 55),
-            (weekday: date(year: 2022, month: 5, day: 6), sales: 55),
-            (weekday: date(year: 2022, month: 5, day: 7), sales: 105),
-            (weekday: date(year: 2022, month: 5, day: 8), sales: 67)
-        ], events: [], glucose: [], lineWidth: 1),
-        .init(city: "95%", sales: [
-            (weekday: date(year: 2022, month: 5, day: 2), sales: 57),
-            (weekday: date(year: 2022, month: 5, day: 3), sales: 56),
-            (weekday: date(year: 2022, month: 5, day: 4), sales: 66),
-            (weekday: date(year: 2022, month: 5, day: 5), sales: 61),
-            (weekday: date(year: 2022, month: 5, day: 6), sales: 60),
-            (weekday: date(year: 2022, month: 5, day: 7), sales: 77),
-            (weekday: date(year: 2022, month: 5, day: 8), sales: 113)
-        ], events: [], glucose: [], lineWidth: 1)
-    ]
-}
-*/
