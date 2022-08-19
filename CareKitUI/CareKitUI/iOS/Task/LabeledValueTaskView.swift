@@ -66,7 +66,7 @@ public struct LabeledValueTaskView<Header: View, DetailDisclosure: View>: View {
                 VStack { detailDisclosure }
                     .if(isCardEnabled && isDetailDisclosurePadded) { $0.padding([.vertical, .trailing]) }
             }
-        }.padding([.top])
+        }.background(Color(UIColor.secondarySystemBackground))
     }
 
     // MARK: - Init

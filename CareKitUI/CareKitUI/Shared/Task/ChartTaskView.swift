@@ -118,7 +118,8 @@ public struct ChartTaskView<Header: View, Chart: View, Footer: View>: View {
                     header
                 }
                 .if(isCardEnabled && isHeaderPadded) { $0.padding([.horizontal, .top]) }
-
+                //.background(Color(UIColor.systemBackground))
+                
                 instructions?
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -146,7 +147,7 @@ public struct ChartTaskView<Header: View, Chart: View, Footer: View>: View {
                .if(isCardEnabled && isFooterPadded) { $0.padding([.horizontal, .bottom]) }
                 
             }
-        }
+        }//.background(Color(UIColor.secondarySystemBackground))
     }
 
     // MARK: - Init

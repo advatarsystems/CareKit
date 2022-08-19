@@ -8,7 +8,7 @@
 import Foundation
 import HealthKit
 
-public struct FoodViewModel: Identifiable {
+public struct FoodViewModel: Identifiable, Equatable {
     
     private let healthStore = HKHealthStore()
     public let id = UUID()
@@ -20,9 +20,15 @@ public struct FoodViewModel: Identifiable {
     public var endGlucose: Double?
     public var glucosePeak: Double?
     public var glucoseDelta: Double?
+    public var timeToBaseline: Double?
+
     public let index: Int
     
-    public init(name: String, date: Date = Date(), score: Double? = nil, startGlucose: Double = 0.0, endGlucose: Double? = nil, glucosePeak: Double? = nil, glucoseDelta: Double? = nil, index: Int, energyUUID: UUID? = nil) {
+    static public func == (lhs: FoodViewModel, rhs: FoodViewModel) -> Bool {
+        return lhs.name == rhs.name && lhs.date == rhs.date && lhs.score == rhs.score
+    }
+    
+    public init(name: String, date: Date = Date(), score: Double? = nil, startGlucose: Double = 0.0, endGlucose: Double? = nil, glucosePeak: Double? = nil, glucoseDelta: Double? = nil, timeToBaseline: Double? = nil, index: Int, energyUUID: UUID? = nil) {
         self.name = name
         self.date = date
         self.score = score
@@ -34,6 +40,7 @@ public struct FoodViewModel: Identifiable {
         self.glucosePeak = glucosePeak
         self.glucoseDelta = glucoseDelta
         
+        self.timeToBaseline = timeToBaseline
         self.energyUUID = energyUUID
     }
     
@@ -43,19 +50,31 @@ public struct FoodViewModel: Identifiable {
     
     public func update(with score: Double, startGlucose: Double, endGlucose: Double, glucosePeak: Double, glucoseDelta: Double, timeToBaseline: Double?) {
         
-        print("FOODSCORE: update score \(score)")
+        print("FOODSCORE: update score \(score) startGlucose \(startGlucose) endGlucose \(endGlucose) glucosePeak \(glucosePeak) glucoseDelta \(glucoseDelta) timeToBaseline \(timeToBaseline)")
         
         //let newModel = FoodViewModel(name: self.name, date: self.date, score: score, startGlucose: startGlucose, glucosePeak: glucosePeak, glucoseDelta: glucoseDelta, index: self.index)
         
-        let metadata: Dictionary<String, String> = [HKMetadataKeyFoodType: self.name, "HKMetadataKeyFoodScore": String(score)]
+        let metadata: Dictionary<String, String> = [
+            HKMetadataKeyFoodType: self.name,
+            "HKMetadataKeyFoodScore": String(score),
+            "HKMetadataKeyFoodStart": String(startGlucose),
+            "HKMetadataKeyFoodEnd": String(endGlucose),
+            "HKMetadataKeyFoodPeak": String(glucosePeak),
+            "HKMetadataKeyFoodDelta": String(glucoseDelta),
+            "HKMetadataKeyFoodTimeToBase": timeToBaseline != nil ? String(timeToBaseline!): ""
+        ]
         
         let energyQuantityConsumed = HKQuantity(unit: HKUnit.joule(), doubleValue: 0.0)
         let energyConsumedType = HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.dietaryEnergyConsumed)!
         let energyConsumedSample = HKQuantitySample(type: energyConsumedType, quantity: energyQuantityConsumed, start: self.date, end: self.date, metadata: metadata)
         let energyConsumedSamples: Set<HKSample> = [energyConsumedSample]
         let foodType = HKCorrelationType.correlationType(forIdentifier: HKCorrelationTypeIdentifier.food)!
+        let energyType = HKObjectType.quantityType(forIdentifier: .dietaryEnergyConsumed)!
+
         let foodCorrelation = HKCorrelation(type: foodType, start: self.date, end: self.date, objects: energyConsumedSamples, metadata: metadata)
         print("FOODSCORE: foodCorrelation \(foodCorrelation)")
+        
+        
         healthStore.save(foodCorrelation) { (success, error) in
             if let error = error {
                 print("FOODSCORE: update \(error)")
@@ -64,7 +83,7 @@ public struct FoodViewModel: Identifiable {
                // Now delete the previous sample
                 if let uuid = self.energyUUID {
                     let predicate = HKQuery.predicateForObject(with: uuid)
-                    let query = HKSampleQuery(sampleType: foodType, predicate: predicate, limit: 0, sortDescriptors: nil) { query, samples, error in
+                    let query = HKSampleQuery(sampleType: energyType, predicate: predicate, limit: 0, sortDescriptors: nil) { query, samples, error in
                         if let samples = samples, !samples.isEmpty {
                             self.healthStore.delete(samples) { success, error in
                                 if let error = error {
@@ -74,12 +93,12 @@ public struct FoodViewModel: Identifiable {
                                 }
                             }
                         } else {
-                            print("FOOSSCORE: update no samples found")
+                            print("FOODSCORE: update no samples found")
                         }
                     }
                     healthStore.execute(query)
                 } else {
-                    print("FOOSSCORE: self.energyUUID \(self.energyUUID)")
+                    print("FOODSCORE: self.energyUUID \(self.energyUUID)")
 
                 }
             }
