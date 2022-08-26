@@ -24,6 +24,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/FHIRModels.git", from: "0.1.0"),
+        .package(url: "https://github.com/antiguab/BAFluidView.git", from: "0.2.6"),
         .package(url: "https://github.com/evgenyneu/SigmaSwiftStatistics.git", branch: "master")
     ],
     targets: [
@@ -35,6 +36,10 @@ let package = Package(
 
         .target(
             name: "CareKitUI",
+            //dependencies: ["BAFluidView"],
+            dependencies: [
+                .product(name: "BAFluidView", package: "BAFluidView")
+            ],
             path: "CareKitUI/CareKitUI",
             exclude: ["Info.plist"]),
 

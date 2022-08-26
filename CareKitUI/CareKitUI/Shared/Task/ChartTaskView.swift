@@ -295,7 +295,7 @@ public struct _ChartTaskViewFooter: View {
     }
     
     public var body: some View {
-        if let average = average, let variability = variability, let inRange = inRange, let score = score {
+        if let average = average, let variability = variability, let inRange = inRange {
             HStack {
                 Group {
                     Group {
@@ -305,7 +305,7 @@ public struct _ChartTaskViewFooter: View {
                         Text("Var: ")
                         Text(String(variability)+"%").fontWeight(.bold)
                         Spacer()
-                        Text("Rng: ")
+                        Text("In Range: ")
                         Text(String(inRange)+"%").fontWeight(.bold)
                     }
                 }
@@ -380,12 +380,14 @@ public struct _ChartTaskViewChart: View {
     private let curve: [MyChartPoint]
     private let foods: [FoodViewModel]
     private let high: Double?
+    var low: Double = 3.9
     @State var selectedElement: MyChartPoint?
     private let mmol: Bool
     private let startDate: Date?
     private let endDate: Date?
 
     var data = ChartData()
+    var zone = ChartData()
     
     init(curve: [MyChartPoint], foods: [FoodViewModel], high: Double?, mmol: Bool, startDate: Date? = nil, endDate: Date? = nil) {
         if let start = startDate, let end = endDate {
@@ -400,6 +402,10 @@ public struct _ChartTaskViewChart: View {
         self.mmol = mmol
         self.startDate = startDate
         self.endDate = endDate
+        
+        if !mmol {
+            low *= 18.0
+        }
         
         if let thisDay = self.curve.first?.date {
             var startOfDay = Calendar.current.startOfDay(for: thisDay)
@@ -432,9 +438,10 @@ public struct _ChartTaskViewChart: View {
                 }
                 let ideal = [MyChartPoint(value: value, date: startOfDay), MyChartPoint(value:value, date: endOfDay)]
                 let idealSeries = ChartData.Series(name: "ideal", values: ideal, lineWidth: 1.0)
-                data.curve = [curveSeries,lowSeries,highSeries,idealSeries]
+                data.curve = [curveSeries] //,lowSeries,highSeries,idealSeries]
+                zone.curve = [idealSeries]
             } else {
-                data.curve = [curveSeries,lowSeries,highSeries]
+                data.curve = [curveSeries, lowSeries, highSeries]
             }
         }
         
@@ -480,6 +487,19 @@ public struct _ChartTaskViewChart: View {
                     .lineStyle(StrokeStyle(lineWidth: series.lineWidth))
                     .symbolSize(symbolSize)
                 }
+                ForEach(zone.curve) { series in
+                    ForEach(series.values, id: \.date) { element in
+                        AreaMark(
+                            x: .value("Day", element.date),
+                            yStart: .value("Sales", low),
+                            yEnd: .value("Sales", element.value)
+                        )
+                    }
+                    .foregroundStyle(by: .value("Name", series.name))
+                    .interpolationMethod(.catmullRom)
+                    .lineStyle(StrokeStyle(lineWidth: series.lineWidth))
+                    .symbolSize(symbolSize).opacity(0.1)
+                }
                 ForEach(foods) { food in
                     PointMark(
                         x: .value("Day", food.date),
@@ -503,6 +523,12 @@ public struct _ChartTaskViewChart: View {
                     .symbolSize(symbolSize)
                 }
             }
+            .chartYScale(domain: .automatic(includesZero: false))
+            /*
+             .chartYScale(domain: .automatic(dataType: Double.self) { domain in
+                 domain.append(100)
+             }
+             */
             .chartOverlay { proxy in
                 GeometryReader { geo in
                     Rectangle()

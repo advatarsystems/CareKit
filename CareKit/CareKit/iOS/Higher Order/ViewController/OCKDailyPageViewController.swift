@@ -93,7 +93,7 @@ UIPageViewControllerDataSource, UIPageViewControllerDelegate {
     ///
     /// - Parameter storeManager: The store from which to query the tasks.
     /// - Parameter adherenceAggregator: An aggregator that will be used to compute the adherence values shown at the top of the view.
-    public init(storeManager: OCKSynchronizedStoreManager, adherenceAggregator: OCKAdherenceAggregator = .compareTargetValues) {
+    public init(storeManager: OCKSynchronizedStoreManager, adherenceAggregator: OCKAdherenceAggregator = .outcomeValue) {
         self.storeManager = storeManager
         self.weekCalendarPageViewController = .init(storeManager: storeManager, aggregator: adherenceAggregator)
         super.init(nibName: nil, bundle: nil)

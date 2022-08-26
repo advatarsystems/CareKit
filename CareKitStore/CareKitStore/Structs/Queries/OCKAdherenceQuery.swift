@@ -47,7 +47,7 @@ public struct OCKAdherenceQuery {
     ///   - taskIDs: The identifiers of the tasks for which adherence should be computed.
     ///   - dateInterval: The date interval for which to return adherence information.
     ///   - aggregator: An aggregator that will be used to compute adherence. Uses `.outcomesExists` by default.
-    public init(taskIDs: [String], dateInterval: DateInterval, aggregator: OCKAdherenceAggregator = .outcomeExists) {
+    public init(taskIDs: [String], dateInterval: DateInterval, aggregator: OCKAdherenceAggregator = .outcomeValue) {
         self.taskIDs = taskIDs
         self.dateInterval = dateInterval
         self.aggregator = aggregator

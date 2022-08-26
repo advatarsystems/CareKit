@@ -31,6 +31,7 @@
 
 import UIKit
 
+
 /// A fillable ring with an inner checkmark.
 open class OCKCompletionRingView: OCKView {
 
@@ -78,20 +79,21 @@ open class OCKCompletionRingView: OCKView {
     let grooveView = OCKRingView()
 
     /// The checkmark image view inside of the ring view.
-    let checkmarkImageView: UIImageView = {
+    /*let checkmarkImageView: UIImageView = {
         let image = UIImage(systemName: "checkmark")
         let imageView = UIImageView(image: image)
         imageView.contentMode = .scaleAspectFit
         return imageView
-    }()
-    
-    /*
-    let checkmarkImageView: UIImageView = {
-        let image = UIImage(systemName: "5")
-        let imageView = UIImageView(image: image)
-        imageView.contentMode = .scaleAspectFit
-        return imageView
     }()*/
+    
+    
+    let checkmarkImageView: UILabel = {
+        let label = UILabel()
+        label.font = .boldSystemFont(ofSize: 14.0)
+        //let imageView = UIImageView(image: image)
+        //imageView.contentMode = .scaleAspectFit
+        return label
+    }()
 
     // MARK: - Methods
 
@@ -102,7 +104,13 @@ open class OCKCompletionRingView: OCKView {
     ///   - value: The progress value.
     ///   - animated: Flag for the ring and check view animations.
     public func setProgress(_ value: CGFloat, animated: Bool = true) {
-        let isComplete = value >= 1.0
+        let isComplete = true //value >= 1.0
+        
+        if value > 0.001 {
+            checkmarkImageView.text = (100.0*value).string(toPlaces: 0)
+            checkmarkImageView.textColor = strokeColor
+        }
+        
         if checkmarkAnimator.isRunning {
             checkmarkAnimator.stopAnimation(true)
         }
@@ -118,7 +126,8 @@ open class OCKCompletionRingView: OCKView {
         } else {
             animationHandler()
         }
-
+         
+        
         ringView.setProgress(value, animated: animated)
     }
 
@@ -128,7 +137,8 @@ open class OCKCompletionRingView: OCKView {
         let style = self.style()
         strokeColor = tintColor
         grooveView.strokeColor = style.color.customGray3
-        checkmarkImageView.preferredSymbolConfiguration = .init(pointSize: style.dimension.symbolPointSize4, weight: .bold)
+        checkmarkImageView.sizeToFit()
+        //checkmarkImageView.preferredSymbolConfiguration = .init(pointSize: style.dimension.symbolPointSize4, weight: .bold)
     }
 
     override func setup() {
@@ -137,10 +147,9 @@ open class OCKCompletionRingView: OCKView {
         grooveView.setProgress(1.0, animated: false)
 
         setProgress(0, animated: false)
-
         checkmarkImageView.tintColor = strokeColor
         ringView.strokeColor = strokeColor
-
+            
         [grooveView, ringView, checkmarkImageView].forEach {
             addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false

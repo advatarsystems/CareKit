@@ -254,7 +254,7 @@ class TestStoreTasks: XCTestCase {
 
     func testCanFetchEventsWhenCurrentTaskVersionStartsAtSameTimeOrEarlierThanThePreviousVersion() throws {
         let thisMorning = Calendar.current.startOfDay(for: Date())
-        let aFewDaysAgo = Calendar.current.date(byAdding: .day, value: -4, to: thisMorning)!
+        let aFewDaysAgo = Calendar.current.date(byAdding: .day, value: -10, to: thisMorning)!
         let manyDaysAgo = Calendar.current.date(byAdding: .day, value: -10, to: thisMorning)!
         let scheduleV1 = OCKSchedule.dailyAtTime(hour: 8, minutes: 0, start: manyDaysAgo, end: nil, text: nil)
         let scheduleV2 = OCKSchedule.dailyAtTime(hour: 8, minutes: 0, start: aFewDaysAgo, end: nil, text: nil)

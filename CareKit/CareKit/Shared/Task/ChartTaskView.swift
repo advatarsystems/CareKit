@@ -199,5 +199,9 @@ public struct ChartTaskViewModel {
     public let glucosePeak: Double
     
     public let glucoseDelta: Double
+    
+    public let activeEnergy: Double
+    
+    public let timeToBaseline: Double
 
 }

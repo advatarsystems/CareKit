@@ -51,6 +51,9 @@ public enum OCKAdherenceAggregator {
     /// The average completion accross all events will be returned.
     case percentOfTargetValuesMet
 
+    ///  Used for metabolic score
+    case outcomeValue
+    
     /// Specifies a custom closure that operates on a day's worth of events and returns an adherence value
     case custom(_ closure: ([OCKAnyEvent]) -> OCKAdherence)
 
@@ -60,6 +63,7 @@ public enum OCKAdherenceAggregator {
     ///   - events: An array of events
     public func aggregate(events: [OCKAnyEvent]) -> OCKAdherence {
         switch self {
+        case .outcomeValue: return computeValueCompletion(for: events, usingMetric: computeOutcomeValue)
         case .outcomeExists: return computeAverageCompletion(for: events, usingMetric: computeOutcomeExistsCompletion)
         case .percentOfOutcomeValuesThatExist:  return computeAverageCompletion(for: events, usingMetric: computePercentOfExpectedValuesThatExist)
         case .compareTargetValues: return computeAverageCompletion(for: events, usingMetric: computeTargetValueBinaryCompletion)
@@ -69,6 +73,22 @@ public enum OCKAdherenceAggregator {
     }
 
     // Applies a metric to an array of events and averages the results
+    private func computeValueCompletion(for events: [OCKAnyEvent],
+                                          usingMetric computeMetric: (_ event: OCKAnyEvent) -> Double) -> OCKAdherence {
+        guard !events.isEmpty else {
+            return .noEvents
+        }
+        
+        // We know that score only has one outcome per day.
+        if let event = events.first {
+            let average = computeMetric(event)
+            return .progress(average)
+        } else {
+            return .progress(0.0)
+        }
+    }
+    
+    // Applies a metric to an array of events and averages the results
     private func computeAverageCompletion(for events: [OCKAnyEvent],
                                           usingMetric computeMetric: (_ event: OCKAnyEvent) -> Double) -> OCKAdherence {
         guard !events.isEmpty else { return .noEvents }
@@ -77,6 +97,15 @@ public enum OCKAdherenceAggregator {
         return .progress(average)
     }
 
+    // Returns 1 or 0 based on whether or not an outcome exists
+    private func computeOutcomeValue(for event: OCKAnyEvent) -> Double {
+        if let values = event.outcome?.values, let value = values.first, let doubleValue = value.doubleValue {
+            return doubleValue
+        } else {
+            return 0.0
+        }
+    }
+    
     // Returns 1 or 0 based on whether or not an outcome exists
     private func computeOutcomeExistsCompletion(for event: OCKAnyEvent) -> Double {
         event.outcome != nil ? 1 : 0
