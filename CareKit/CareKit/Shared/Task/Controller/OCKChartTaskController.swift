@@ -85,7 +85,7 @@ open class OCKChartTaskController: OCKTaskController {
                                         writeScore = true
                                     }
                                 }
-                                print("METABOLIC: count \(count) date \(String(describing: dates.first)) \(dates.last)")
+                                print("METABOLIC: count \(count) date \(String(describing: dates.first)) \(String(describing: dates.last))")
                                 for index in 0..<count {
                                     if let doubleValue = values[index].doubleValue {
                                         glucoseValues.append(doubleValue)
@@ -231,7 +231,7 @@ open class OCKChartTaskController: OCKTaskController {
             
             score = Int((avgscore + (100.0-cv) + ir)/3.0)
             
-            print("STATISTICS: average \(avg) std \(sd) cv \(cv) \(100-cv) avgscore \(avgscore)  inRange \(ir) score \(score)")
+            print("STATISTICS: average \(avg) std \(sd) cv \(cv) \(100-cv) avgscore \(avgscore)  inRange \(ir) score \(String(describing: score))")
             
             // Find when back to baseline
             
@@ -349,7 +349,7 @@ open class OCKChartTaskController: OCKTaskController {
                             }
                         } else {
                             let date = (event.outcome as? OCKOutcome)?.values.first?.createdDate
-                            print("SYNC: score already had outcome values \((event.outcome as? OCKOutcome)?.values) at \(date)")
+                            print("SYNC: score already had outcome values \(String(describing: (event.outcome as? OCKOutcome)?.values)) at \(String(describing: date))")
                         }
                     } else if let value = values.first {
                         do {

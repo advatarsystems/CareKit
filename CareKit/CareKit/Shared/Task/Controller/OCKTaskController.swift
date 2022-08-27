@@ -75,6 +75,7 @@ open class OCKTaskController: ObservableObject {
     open func fetchAndObserveEvents(forTaskQuery taskQuery: OCKTaskQuery, eventQuery: OCKEventQuery) {
         clearSubscriptions()
 
+        print("MULTI: OCKTaskController fetchAndObserveEvents eventQuery \(eventQuery)")
         // We only subscribe to changes for the tasks and events that we receive in a query. It's possible that after initially fetching tasks and
         // events, a new task is added that matches the given task query. When that happens we must re-query.
         refreshOnAddedTaskNotificationFor(taskQuery: taskQuery, eventQuery: eventQuery)
