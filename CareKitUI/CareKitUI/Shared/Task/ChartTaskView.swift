@@ -302,16 +302,24 @@ public struct _ChartTaskViewFooter: View {
     public var body: some View {
         if let average = average, let variability = variability, let inRange = inRange {
             HStack {
-                Group {
+                VStack {
                     Group {
-                        Text("Avg: ")
-                        Text(String(average)).fontWeight(.bold)
-                        Spacer()
-                        Text("Var: ")
-                        Text(String(variability)+"%").fontWeight(.bold)
-                        Spacer()
-                        Text("In Range: ")
-                        Text(String(inRange)+"%").fontWeight(.bold)
+                        HStack {
+                            Text("Average")
+                            Spacer()
+                            Text("Variability")
+                            Spacer()
+                            Text("In Range")
+                        }
+                    }
+                    Group {
+                        HStack {
+                            Text(String(average)).fontWeight(.bold)
+                            Spacer()
+                            Text(String(variability)+"%").fontWeight(.bold)
+                            Spacer()
+                            Text(String(inRange)+"%").fontWeight(.bold)
+                        }
                     }
                 }
             }.font(.caption)

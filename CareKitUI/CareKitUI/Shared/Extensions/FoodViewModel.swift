@@ -38,6 +38,9 @@ public struct FoodViewModel: Identifiable, Equatable {
     public var glucosePeak: Double?
     public var glucoseDelta: Double?
     public var timeToBaseline: Double?
+    public var glucoseAverage: Double?
+    public var glucoseVariability: Double?
+    public var timeInRange: Double?
 
     public var index: Int
     
@@ -45,7 +48,7 @@ public struct FoodViewModel: Identifiable, Equatable {
         return lhs.name == rhs.name && lhs.date == rhs.date && lhs.score == rhs.score
     }
     
-    public init(uuidString: String? = nil , name: String, date: Date = Date(), score: Double? = nil, startGlucose: Double = 0.0, endGlucose: Double? = nil, glucosePeak: Double? = nil, glucoseDelta: Double? = nil, timeToBaseline: Double? = nil, index: Int) {
+    public init(uuidString: String? = nil , name: String, date: Date = Date(), score: Double? = nil, startGlucose: Double = 0.0, endGlucose: Double? = nil, glucosePeak: Double? = nil, glucoseDelta: Double? = nil, timeToBaseline: Double? = nil, glucoseAverage: Double? = nil, glucoseVariability: Double? = nil, timeInRange: Double? = nil, index: Int) {
         
         if let uuidString = uuidString, let uuid = UUID(uuidString: uuidString) {
             id = uuid
@@ -63,6 +66,9 @@ public struct FoodViewModel: Identifiable, Equatable {
         self.glucoseDelta = glucoseDelta
         
         self.timeToBaseline = timeToBaseline
+        self.glucoseAverage = glucoseAverage
+        self.glucoseVariability = glucoseVariability
+        self.timeInRange = timeInRange
         
     }
     
@@ -73,6 +79,10 @@ public struct FoodViewModel: Identifiable, Equatable {
         var glucosePeak: Double?
         var glucoseDelta: Double?
         var timeToBaseline: Double?
+        var glucoseAverage: Double?
+        var glucoseVariability: Double?
+        var timeInRange: Double?
+        
         var id: UUID?
 
         for metadataItem in metadata {
@@ -97,6 +107,18 @@ public struct FoodViewModel: Identifiable, Equatable {
                 timeToBaseline = Double(timeToBaselineString)?.roundToPlaces(places: 0)
             }
             
+            if let average = metadataItem["HKMetadataKeyFoodAverage"] as? String {
+                glucoseAverage = Double(average)?.roundToPlaces(places: 0)
+            }
+  
+            if let variability = metadataItem["HKMetadataKeyFoodVariability"] as? String {
+                glucoseVariability = Double(variability)?.roundToPlaces(places: 0)
+            }
+ 
+            if let inRange = metadataItem["HKMetadataKeyFoodInRange"] as? String {
+                timeInRange = Double(inRange)?.roundToPlaces(places: 0)
+            }
+
             if let idString = metadataItem[HKMetadataKeyExternalUUID] as? String {
                 id = UUID(uuidString: idString)
             }
@@ -116,6 +138,9 @@ public struct FoodViewModel: Identifiable, Equatable {
         self.glucosePeak = glucosePeak
         self.glucoseDelta = glucoseDelta
         self.timeToBaseline = timeToBaseline
+        self.glucoseAverage = glucoseAverage
+        self.glucoseVariability = glucoseVariability
+        self.timeInRange = timeInRange
         self.index = index
         self.startGlucose = startGlucose
         self.endGlucose = endGlucose
@@ -127,7 +152,7 @@ public struct FoodViewModel: Identifiable, Equatable {
         return 5
     }
     
-    public func update(with score: Double, startGlucose: Double, endGlucose: Double, glucosePeak: Double, glucoseDelta: Double, timeToBaseline: Double?) {
+    public func update(with score: Double, startGlucose: Double, endGlucose: Double, glucosePeak: Double, glucoseDelta: Double, timeToBaseline: Double?, glucoseAverage:  Double, glucoseVariability: Double, timeInRange: Double) {
         
         print("FOODSCORE: update score \(score) startGlucose \(startGlucose) endGlucose \(endGlucose) glucosePeak \(glucosePeak) glucoseDelta \(glucoseDelta) timeToBaseline \(String(describing: timeToBaseline))")
         
@@ -141,7 +166,10 @@ public struct FoodViewModel: Identifiable, Equatable {
             "HKMetadataKeyFoodEnd": String(endGlucose),
             "HKMetadataKeyFoodPeak": String(glucosePeak),
             "HKMetadataKeyFoodDelta": String(glucoseDelta),
-            "HKMetadataKeyFoodTimeToBase": timeToBaseline != nil ? String(timeToBaseline!): ""
+            "HKMetadataKeyFoodTimeToBase": timeToBaseline != nil ? String(timeToBaseline!): "",
+            "HKMetadataKeyFoodAverage": String(glucoseAverage),
+            "HKMetadataKeyFoodVariability": String(glucoseVariability),
+            "HKMetadataKeyFoodInRange": String(timeInRange)
         ]
         
         let energyQuantityConsumed = HKQuantity(unit: HKUnit.joule(), doubleValue: 0.0)
