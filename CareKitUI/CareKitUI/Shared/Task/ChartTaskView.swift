@@ -31,7 +31,12 @@ import Foundation
 import SwiftUI
 import Charts
 
-public class MyChartPoint {
+public class MyChartPoint: CustomStringConvertible {
+    
+    public var description: String  {
+        return "{value:\(value), date:\(date)}"
+    }
+    
     public let value: Double
     public let date: Date
     public init(value: Double, date: Date) {
