@@ -36,7 +36,6 @@ let package = Package(
 
         .target(
             name: "CareKitUI",
-            //dependencies: ["BAFluidView"],
             dependencies: [
                 .product(name: "BAFluidView", package: "BAFluidView")
             ],

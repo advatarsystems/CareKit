@@ -47,6 +47,9 @@ protocol OCKTaskConverterTraits: OCKFHIRResourceCoder where Entity == OCKTask {
     /// A closure that defines how `OCKTasks`'s `instructions` property is mapped from a FHIR Resource.
     var getCareKitInstructions: (Resource) throws -> String? { get }
 
+    /// A closure that defines how `OCKTasks`'s `instructions` property is mapped from a FHIR Resource.
+    var getCareKitGroupIdentifier: (Resource) throws -> String? { get }
+
     // MARK: OCKTask to FHIR CarePlanResource
 
     /// A closure that sets a given id on a given Resource.
@@ -76,17 +79,19 @@ extension OCKTaskConverterTraits {
             carePlanUUID: nil,
             schedule: try getCareKitSchedule(resource))
 
+        task.groupIdentifier = "food"
+ 
         task.instructions = try getCareKitInstructions(resource)
 
         return task
     }
 
     public func convert(entity: OCKTask) throws -> Resource {
-        let medicationOrder = newResource()
-        try setFHIRID(entity.id, medicationOrder)
-        try setFHIRTitle(entity.title, medicationOrder)
-        try setFHIRInstructions(entity.instructions, medicationOrder)
-        try setFHIRSchedule(entity.schedule, medicationOrder)
-        return medicationOrder
+        let anyResource = newResource()
+        try setFHIRID(entity.id, anyResource)
+        try setFHIRTitle(entity.title, anyResource)
+        try setFHIRInstructions(entity.instructions, anyResource)
+        try setFHIRSchedule(entity.schedule, anyResource)
+        return anyResource
     }
 }

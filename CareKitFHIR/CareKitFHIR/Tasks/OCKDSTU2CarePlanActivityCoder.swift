@@ -40,12 +40,15 @@ extension ModelsDSTU2.CarePlanActivity: OCKFHIRResource {
 /// The mapping is predefined to use reasonable defaults, but it is possible to configure
 /// the behavior by setting properties on `OCKDSTU2CarePlanActivityCoder`.
 public struct OCKDSTU2CarePlanActivityCoder: OCKTaskConverterTraits {
+    
 
     public typealias Resource = ModelsDSTU2.CarePlanActivity
     public typealias Entity = OCKTask
 
     // MARK: FHIR CarePlanActivity to OCKTask
 
+    public var getCareKitGroupIdentifier: (ModelsDSTU2.CarePlanActivity) throws -> String? = { _ in return nil}
+ 
     public var getCareKitID: (Resource) throws -> String = { activity in
         guard let id = activity.id?.value?.string else {
             throw OCKFHIRCodingError.missingRequiredField("id")

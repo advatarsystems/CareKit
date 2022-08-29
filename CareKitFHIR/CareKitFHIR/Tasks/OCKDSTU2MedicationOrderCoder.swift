@@ -49,6 +49,10 @@ public struct OCKDSTU2MedicationOrderCoder: OCKTaskConverterTraits {
 
     // MARK: Convert FHIR MedicationOrder to OCKTask
 
+    public var getCareKitGroupIdentifier: (ModelsDSTU2.MedicationOrder) throws -> String? = { medicationOrder in
+        return "medication"
+    }
+
     public var getCareKitID: (Resource) throws -> String = { medicationOrder in
         guard let id = medicationOrder.id?.value?.string else {
             throw OCKFHIRCodingError.missingRequiredField("id")

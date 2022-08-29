@@ -203,7 +203,7 @@ open class OCKChartTaskController: OCKTaskController {
             print("STATISTICS: ismmol \(ismmol)")
             if ismmol {
                 for value in glucoseValues {
-                    print("STATISTICS: value \(value) glucosePeak \(glucosePeak)")
+                   // print("STATISTICS: value \(value) glucosePeak \(glucosePeak)")
                     if value > glucosePeak {
                         glucosePeak = value
                     }

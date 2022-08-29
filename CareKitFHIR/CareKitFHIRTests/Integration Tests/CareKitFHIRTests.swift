@@ -59,6 +59,18 @@ class CareKitFHIRTests: XCTestCase {
         XCTAssert(task.instructions == "2 puffs every 2-4 hours")
         XCTAssert(task.schedule.elements.first?.interval == DateComponents(day: 1))
     }
+    
+    func testParseFHIRObservationOrder() throws {
+        let resource = OCKFHIRResourceData<DSTU2, JSON>(data: sampleObservationData)
+        var coder = OCKDSTU2ObservationCoder()
+        coder.getCareKitSchedule = { _ in OCKSchedule.dailyAtTime(hour: 0, minutes: 0, start: Date(), end: nil, text: nil, duration: .allDay) }
+        let task = try coder.decode(resource)
+        print("OBSERVATION: \(task)")
+        XCTAssert(task.id == "11")
+        //XCTAssert(task.instructions == "2 puffs every 2-4 hours")
+        //XCTAssert(task.schedule.elements.first?.interval == DateComponents(day: 1))
+    }
+
 
     func testParseFailsWhenDataIsCorrupt() {
         let corruptData = "{badJson: missingQuotes}".data(using: .utf8)!
@@ -240,4 +252,54 @@ private let sampleMedicationOrderData = """
     }
   ]
 }
+""".data(using: .utf8)!
+
+private let sampleObservationData = """
+ {
+   "category" : {
+     "text" : "Laboratory",
+     "coding" : [
+       {
+         "system" : "http://hl7.org/fhir/observation-category",
+         "code" : "laboratory"
+       }
+     ]
+   },
+   "issued" : "2017-10-18T00:00:00Z",
+   "status" : "final",
+   "id" : "11",
+   "code" : {
+     "text" : "Total cholesterol",
+     "coding" : [
+       {
+         "system" : "http://loinc.org",
+         "code" : "2093-3"
+       }
+     ]
+   },
+   "referenceRange" : [
+     {
+       "low" : {
+         "code" : "mg/dL",
+         "system" : "http://unitsofmeasure.org",
+         "value" : 120,
+         "unit" : "mg/dL"
+       },
+       "high" : {
+         "code" : "mg/dL",
+         "system" : "http://unitsofmeasure.org",
+         "value" : 220,
+         "unit" : "mg/dL"
+       },
+       "text" : "120 to 220 mg/dL"
+     }
+   ],
+   "valueQuantity" : {
+     "code" : "mg/dL",
+     "system" : "http://unitsofmeasure.org",
+     "value" : 184,
+     "unit" : "mg/dL"
+   },
+   "resourceType" : "Observation"
+ }
 """.data(using: .utf8)!
