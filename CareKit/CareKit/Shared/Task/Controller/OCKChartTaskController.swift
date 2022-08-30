@@ -180,7 +180,7 @@ open class OCKChartTaskController: OCKTaskController {
             let dev = ismmol ? 100*(avg-6.1)/(6.1-4.0): 100*(avg-110)/(110-72)
             let cv = sd/avg*100.0
             let devf = (100 + dev)/100.0 // < 1 if below upper limit and then the score is lower
-            print("STATISTICS: average \(avg) std \(sd) cv \(cv) dev \(dev) devf \(devf) score \((100.0 - devf*cv))")
+            //print("STATISTICS: average \(avg) std \(sd) cv \(cv) dev \(dev) devf \(devf) score \((100.0 - devf*cv))")
             variability = Int(cv)
             average = avg
             
@@ -200,7 +200,7 @@ open class OCKChartTaskController: OCKTaskController {
             
             var above = 0
             var below = 0
-            print("STATISTICS: ismmol \(ismmol)")
+            //print("STATISTICS: ismmol \(ismmol)")
             if ismmol {
                 for value in glucoseValues {
                    // print("STATISTICS: value \(value) glucosePeak \(glucosePeak)")
@@ -231,13 +231,13 @@ open class OCKChartTaskController: OCKTaskController {
             
             score = Int((avgscore + (100.0-cv) + ir)/3.0)
             
-            print("STATISTICS: average \(avg) std \(sd) cv \(cv) \(100-cv) avgscore \(avgscore)  inRange \(ir) score \(String(describing: score))")
+            //print("STATISTICS: average \(avg) std \(sd) cv \(cv) \(100-cv) avgscore \(avgscore)  inRange \(ir) score \(String(describing: score))")
             
             // Find when back to baseline
             
-            print("STATISTICS: baseline start \(firstValue.value)@\(firstValue.date) ")
+            //print("STATISTICS: baseline start \(firstValue.value)@\(firstValue.date) ")
             glucoseDelta = lastValue.value - firstValue.value
-            print("STATISTICS: glucosePeak \(glucosePeak) glucoseDelta \(glucoseDelta)")
+            //print("STATISTICS: glucosePeak \(glucosePeak) glucoseDelta \(glucoseDelta)")
 
         } else {
             print("STATISTICS: Could not compute \(String(describing: Sigma.average(glucoseValues))) \(String(describing: Sigma.standardDeviationSample(glucoseValues)))")
