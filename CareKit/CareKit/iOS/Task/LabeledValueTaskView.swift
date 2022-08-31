@@ -188,7 +188,7 @@ public extension LabeledValueTaskViewModel {
     }
 }
 
-private extension LabeledValueTaskViewState {
+public extension LabeledValueTaskViewState {
 
     static func fromViewModel(state: LabeledValueTaskViewModel.State?) -> Self {
         guard let state = state else {
