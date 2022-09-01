@@ -15,7 +15,7 @@ public struct Metadata {
     }
 }
 
-enum OCKFoodViewModelError: Error, LocalizedError {
+enum FoodViewModelError: Error, LocalizedError {
 
     case missing(_ item: String)
  
@@ -127,7 +127,7 @@ public struct FoodViewModel: Identifiable, Equatable {
         if let name = name {
             self.init(name: name, date: date, index: index)
         } else {
-            throw OCKFoodViewModelError.missing("name")
+            throw FoodViewModelError.missing("name")
         }
         if let uuid = id {
             self.id = uuid

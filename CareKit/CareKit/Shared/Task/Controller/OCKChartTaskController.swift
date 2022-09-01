@@ -35,6 +35,178 @@ import CareKitUI
 import HealthKit
 import SigmaSwiftStatistics
 
+public struct Score: Codable {
+    public let average: Double
+    public let variability: Int
+    public let inRange: Int
+    public let score: Double
+    public let peak: Double
+    public let delta: Double
+    public let timeToBaseline: Double
+    public let timeInRange: Double
+}
+
+open class Analytics {
+    
+    static public func analyzeDay(glucoseValues: [MyChartPoint]) -> Score? {
+        
+       let doubleValues = glucoseValues.map { $0.value }
+        if let startDate = glucoseValues.first?.date, let endDate = glucoseValues.last?.date, let average = Sigma.average(doubleValues), let standarDeviation = Sigma.standardDeviationSample(doubleValues) {
+            let variability = standarDeviation/average*100.0
+            // FIXME: Maybe heuristic a bit too fragile? But an average less than 30 mg/dl is severly hypoglycemic. On the other hand some people might be using mmol and average above 30 mmol/l (540 mg/dl). The Libre app does not show values above 21 mmol/l
+            let ismmol = average < 30
+     
+            var avgerageInMol = average
+            if !ismmol {
+                avgerageInMol = avgerageInMol/18.0
+            }
+            
+            var avgscore = 0.0
+            if avgerageInMol >= 4.0 && avgerageInMol <= 6.1 {
+                avgscore = 120.0 - 6.56 * avgerageInMol // 6.1 should be 80 so 80 = 120-k*6.1 k = 40/6.1
+            } else if avgerageInMol > 6.1 {
+                avgscore = 0.9*(90.0/16.0*avgerageInMol*avgerageInMol-450.0/4.0*avgerageInMol+1125.0/2.0)
+            } else if avgerageInMol < 4.0 {
+                avgscore = 100.0/16.0*avgerageInMol*avgerageInMol
+            }
+            
+            var above = 0
+            var below = 0
+            var glucosePeak = -1.0
+            
+            for value in doubleValues {
+               // print("STATISTICS: value \(value) glucosePeak \(glucosePeak)")
+                if value > glucosePeak {
+                    glucosePeak = value
+                }
+                if ismmol {
+                    if value > 6.1 {
+                        above += 1
+                    } else if value < 4.0 {
+                        below += 1
+                    }
+                } else {
+                    if value > 110 {
+                        above += 1
+                    } else if value < 72 {
+                        below += 1
+                    }
+                }
+            }
+            
+            let ir = 100.0*Double(glucoseValues.count-above-below)/Double(glucoseValues.count)
+            let s = (avgscore + (100.0-variability) + ir)/3.0
+            print("ANALYTICS: startDate \(startDate) endDate \(endDate) average \(average) standarDeviation \(standarDeviation) variability \(variability) score \(s)")
+            
+            let score = Score(average: average, variability: Int(variability), inRange: Int(ir), score: s, peak: glucosePeak, delta: 0.0, timeToBaseline: 0.0, timeInRange: ir)
+    
+            return score
+        }
+        return nil
+    }
+    
+    // Peak, time to baseline and delta
+    
+    static public func analyzeZone(glucoseValues: [MyChartPoint], date: Date) -> Score {
+         
+        // FIXME: Need a better model here...
+        
+        /*
+         Time to baseline should be less than two hours aka 120 minutes. That scores 80. If the peak is super small we give 100.
+         
+         y(T) = 100-k*T y(120) = 80 => 80=100-k*120 k=20/120 = 1/60
+         
+         If it is nil, 50 points?
+         
+         If the peak is less than 6.1 it is 100
+
+         */
+
+        let startOffSet: TimeInterval = -0.5*60*60
+        let zoneLength = 3.0
+        let endOffSet: TimeInterval = (zoneLength+0.5)*60*60
+        let startDate = date.addingTimeInterval(startOffSet)
+        let endDate   = date.addingTimeInterval(endOffSet)
+        let doubleValues = glucoseValues.map { ($0.date >= startDate && $0.date <= endDate) ? $0.value:nil }
+
+        var baselineValue: Double = -1.0
+        var peakValue: Double = -1.0
+        var peakTime: Date?
+        var baselineReturnTime: Double  = -1.0
+        var startGlucose = -1.0
+        // Compute baseline and the time for the peak
+        for value in glucoseValues {
+            if value.date >= startDate && value.date <= endDate {
+                
+                if value.value > peakValue {
+                    peakValue = value.value
+                    peakTime = value.date
+                }
+                
+                if value.date >= date, baselineValue < 0.0 {
+                    baselineValue = value.value
+                }
+            }
+        }
+        
+        for value in glucoseValues {
+            if let time = peakTime, value.date >= time, value.date <= endDate {
+                if baselineValue > 0.0, value.value <= baselineValue, baselineReturnTime < 0.0 {
+                    baselineReturnTime = value.date.timeIntervalSince(date)/60.0 // In minutes
+                }
+            }
+        }
+        
+        print("ANALYTICS: peakValue \(peakValue) baselineValue \(baselineValue) baselineReturnTime \(String(describing: baselineReturnTime))")
+        
+        var timeScore = 50.0
+        var deltaScore = 50.0
+        var peakScore = 50.0
+
+        if baselineReturnTime > 0.0 {
+            timeScore = 100.0 - baselineReturnTime/60.0
+        }
+        
+        let glucoseDelta = peakValue-baselineValue
+
+        let ismmol = baselineValue < 30
+        
+        if ismmol {
+            if peakValue <= 6.1 {
+                peakScore = 100.0
+            } else {
+                peakScore = 50.0
+            }
+            
+            if glucoseDelta <= 2 {
+                deltaScore = 100.0
+            } else {
+                deltaScore = 50.0
+            }
+            
+        } else {
+            if peakValue <= 6.1*18.0 {
+                peakScore = 100.0
+            } else {
+                peakScore = 50.0
+            }
+            if glucoseDelta <= 36.0 {
+                deltaScore = 100.0
+            } else {
+                deltaScore = 50.0
+            }
+        }
+        
+        let s = (timeScore+peakScore+deltaScore)/3.0
+
+        let score = Score(average: 0.0, variability: 0, inRange: 0, score: s, peak: peakValue, delta: -1.0, timeToBaseline: baselineReturnTime, timeInRange: -1.0)
+        
+        return score
+    }
+
+    
+}
+
 open class OCKChartTaskController: OCKTaskController {
 
     /// Data used to create a `CareKitUI.ChartTaskView`.
@@ -173,110 +345,22 @@ open class OCKChartTaskController: OCKTaskController {
             }
         }
         
-        print("INSULIN: insulins \(insulins)")
-        var average: Double?
-        var variability: Int?
-        var score: Int?
-        var inRange: Int?
-        var glucosePeak: Double = 0.0
-        var glucoseDelta: Double = 0.0
-        var timeToBaseline: Double = 0.0
         
-        if let firstValue = pointValues.first, let lastValue = pointValues.last, let avg = Sigma.average(glucoseValues), let sd = Sigma.standardDeviationSample(glucoseValues) {
-            
-            // FIXME: Maybe heuristic a bit too fragile? But an average less than 30 mg/dl is severly hypoglycemic. On the other hand some people might be using mmol and average above 30 mmol/l (540 mg/dl). The Libre app does not show values above 21 mmol/l
-            /*
-             
-             Variability can be 0-100
-             Average can be whatever. It is good if below 6.1 but above 4.0.
-             
-             Say it is an x2 function where 4.0 is 100 and 6.1 is 90
-             f(x)=ax2+bx+c
-             f(4) = 100
-             f(6.1) = 90
-             
-             a16+4b+c=100
-             37.1a+6.1b+c=90
-             
-             In Range is easy
-             
-             How do we weigh them together?
-             
-             Just an average of the three?
-             
-             */
-            let ismmol = avg < 30 // Is it possible to have less than 1.6 mmol/L ?
-            let dev = ismmol ? 100*(avg-6.1)/(6.1-4.0): 100*(avg-110)/(110-72)
-            let cv = sd/avg*100.0
-            let devf = (100 + dev)/100.0 // < 1 if below upper limit and then the score is lower
-            //print("STATISTICS: average \(avg) std \(sd) cv \(cv) dev \(dev) devf \(devf) score \((100.0 - devf*cv))")
-            variability = Int(cv)
-            average = avg
-            
-            var avgmmol = avg
-            if !ismmol {
-                avgmmol = avg/18.0
-            }
-            
-            var avgscore = 0.0
-            if avgmmol >= 4.0 && avgmmol <= 6.1 {
-                avgscore = 120.0 - 6.56 * avgmmol // 6.1 should be 80 so 80 = 120-k*6.1 k = 40/6.1
-            } else if avgmmol > 6.1 {
-                avgscore = 0.9*(90.0/16.0*avgmmol*avgmmol-450.0/4.0*avgmmol+1125.0/2.0)
-            } else if avgmmol < 4.0 {
-                avgscore = 100.0/16.0*avgmmol*avgmmol
-            }
-            
-            var above = 0
-            var below = 0
-            //print("STATISTICS: ismmol \(ismmol)")
-            if ismmol {
-                for value in glucoseValues {
-                   // print("STATISTICS: value \(value) glucosePeak \(glucosePeak)")
-                    if value > glucosePeak {
-                        glucosePeak = value
-                    }
-                    if value > 6.1 {
-                        above += 1
-                    } else if value < 4.0 {
-                        below += 1
-                    }
-                }
-            } else {
-                for value in glucoseValues {
-                    if value > glucosePeak {
-                        glucosePeak = value
-                    }
-                    if value > 110 {
-                        above += 1
-                    } else if value < 72 {
-                        below += 1
-                    }
-                }
-            }
-            
-            let ir = 100.0*Double(glucoseValues.count-above-below)/Double(glucoseValues.count)
-            inRange = Int(ir)
-            
-            score = Int((avgscore + (100.0-cv) + ir)/3.0)
-            
-            //print("STATISTICS: average \(avg) std \(sd) cv \(cv) \(100-cv) avgscore \(avgscore)  inRange \(ir) score \(String(describing: score))")
-            
-            // Find when back to baseline
-            
-            //print("STATISTICS: baseline start \(firstValue.value)@\(firstValue.date) ")
-            glucoseDelta = lastValue.value - firstValue.value
-            //print("STATISTICS: glucosePeak \(glucosePeak) glucoseDelta \(glucoseDelta)")
-
-        } else {
-            print("STATISTICS: Could not compute \(String(describing: Sigma.average(glucoseValues))) \(String(describing: Sigma.standardDeviationSample(glucoseValues)))")
+        for food in foods {
+            let foodScore = Analytics.analyzeZone(glucoseValues: pointValues.reversed(), date: food.date)
+            print("ANALYTICS: foodScore \(foodScore)")
         }
         
         // Is this a good place to update metabolic score?
         
-        if writeScore, let s = score, let date = startOfDay {
-            print("SYNC: score \(s) date \(date)")
-            save(v: Double(s)/100.0, date: date, taskIdentifier: "score")
+        guard let dayScore = Analytics.analyzeDay(glucoseValues: pointValues.reversed()) else {
+            return nil
+        }
+        print("ANALYTICS: score \(dayScore)")
+ 
+        if writeScore, let date = startOfDay {
+            print("SYNC: score \(dayScore.score) date \(date)")
+            save(v: dayScore.score/100.0, date: date, taskIdentifier: "score")
         }
         
         return .init(title: taskEvents.firstEventTitle,
@@ -286,14 +370,14 @@ open class OCKChartTaskController: OCKTaskController {
                      values: pointValues,
                      foods: foods,
                      insulins: insulins,
-                     average: average,
-                     variability: variability,
-                     inRange: inRange,
-                     score: score,
-                     glucosePeak: glucosePeak,
-                     glucoseDelta: glucoseDelta,
+                     average: dayScore.average,
+                     variability: dayScore.variability,
+                     inRange: dayScore.inRange,
+                     score: Int(dayScore.score),
+                     glucosePeak: dayScore.peak,
+                     glucoseDelta: dayScore.delta,
                      activeEnergy: activeEnergy,
-                     timeToBaseline: timeToBaseline
+                     timeToBaseline: dayScore.timeToBaseline
         )
     }
     
