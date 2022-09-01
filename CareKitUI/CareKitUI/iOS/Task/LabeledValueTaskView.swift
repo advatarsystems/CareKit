@@ -96,9 +96,9 @@ public extension LabeledValueTaskView where Header == _LabeledValueTaskViewHeade
     ///   - title: Title text to display in the header.
     ///   - detail: Detail text to display in the header.
     ///   - detailDisclosure: View to inject to the right of the header. Specified content will be stacked vertically.
-    init(title: Text, detail: Text? = nil, image: Image? = nil, @ViewBuilder detailDisclosure: () -> DetailDisclosure) {
+    init(title: Text, detail: Text? = nil, image: Image? = nil, color: Color? = nil, @ViewBuilder detailDisclosure: () -> DetailDisclosure) {
         self.init(isHeaderPadded: true, isDetailDisclosurePadded: false, header: {
-            _LabeledValueTaskViewHeader(title: title, detail: detail, image: image)
+            _LabeledValueTaskViewHeader(title: title, detail: detail, image: image, color: color)
         }, detailDisclosure: detailDisclosure)
     }
 }
@@ -123,9 +123,9 @@ public extension LabeledValueTaskView where Header == _LabeledValueTaskViewHeade
     ///   - title: Title text to display in the header.
     ///   - detail: Detail text to display in the header.
     ///   - state: The completion state of the view.
-    init(title: Text, detail: Text? = nil, image: Image? = nil, state: LabeledValueTaskViewState) {
+    init(title: Text, detail: Text? = nil, image: Image? = nil, color: Color? = nil, state: LabeledValueTaskViewState) {
         self.init(isHeaderPadded: true, isDetailDisclosurePadded: true, header: {
-            _LabeledValueTaskViewHeader(title: title, detail: detail, image: image)
+            _LabeledValueTaskViewHeader(title: title, detail: detail, image: image, color: color)
         }, detailDisclosure: {
             _LabeledValueTaskViewDetailDisclosure(state: state)
         })
@@ -208,9 +208,10 @@ public struct _LabeledValueTaskViewHeader: View {
     fileprivate let title: Text
     fileprivate let detail: Text?
     fileprivate let image: Image?
+    fileprivate let color: Color?
 
     public var body: some View {
-        HeaderView(title: title, detail: detail, image: image, color: .red)
+        HeaderView(title: title, detail: detail, image: image, color: color != nil ? color!:.red)
     }
 }
 

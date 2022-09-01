@@ -188,6 +188,8 @@ public struct ChartTaskViewModel {
         
     public let foods: [FoodViewModel]?
     
+    public let insulins: [InsulinViewModel]?
+
     public let average: Double?
     
     public let variability: Int?

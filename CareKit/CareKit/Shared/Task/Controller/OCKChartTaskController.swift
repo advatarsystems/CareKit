@@ -63,6 +63,7 @@ open class OCKChartTaskController: OCKTaskController {
         var glucoseValues = [Double]()
         var pointValues = [MyChartPoint]()
         var foods = [FoodViewModel]()
+        var insulins = [InsulinViewModel]()
         var activeEnergy: Double = 0.0
         var startOfDay: Date?
         
@@ -71,7 +72,34 @@ open class OCKChartTaskController: OCKTaskController {
         for events in taskEvents {
             for event in events {
                 if let task = event.task as? OCKHealthKitTask {
-                    if task.healthKitLinkage.quantityIdentifier == HKQuantityTypeIdentifier.bloodGlucose {
+                    if task.healthKitLinkage.quantityIdentifier == HKQuantityTypeIdentifier.insulinDelivery {
+                        if let outcome = event.outcome {
+                            if let outcome = outcome as? OCKHealthKitOutcome, let dates = outcome.dates {
+                                print("INSULIN: \(outcome)")
+                                let count = outcome.values.count
+                                let values = outcome.values
+                                
+                                for index in 0..<count {
+                                    /* Not really need to mark up the chart
+                                    if let metadata = outcome.metadata {
+                                        let item = metadata[index]
+                                        print("INSULIN: metadata \(item)")
+                                    } else {
+                                        print("INSULIN: no metadata")
+                                    }
+                                    */
+                                    //let value = values[index].
+                                    //let value = Int(values[index].doubleValue(for: .internationalUnit()))
+                                    if let doubleValue = values[index].doubleValue {
+                                        let newValue = InsulinViewModel(uuidString: nil, date: dates[index], reason: HKInsulinDeliveryReason.basal, units: Int(doubleValue), index: index)
+                                        insulins.append(newValue)
+                                    }
+                                    
+                                }
+                                
+                            }
+                        }
+                    } else if task.healthKitLinkage.quantityIdentifier == HKQuantityTypeIdentifier.bloodGlucose {
                         if let outcome = event.outcome {
                             if let outcome = outcome as? OCKHealthKitOutcome, let dates = outcome.dates {
                                 let count = outcome.values.count
@@ -145,6 +173,7 @@ open class OCKChartTaskController: OCKTaskController {
             }
         }
         
+        print("INSULIN: insulins \(insulins)")
         var average: Double?
         var variability: Int?
         var score: Int?
@@ -256,6 +285,7 @@ open class OCKChartTaskController: OCKTaskController {
                      action: {},
                      values: pointValues,
                      foods: foods,
+                     insulins: insulins,
                      average: average,
                      variability: variability,
                      inRange: inRange,

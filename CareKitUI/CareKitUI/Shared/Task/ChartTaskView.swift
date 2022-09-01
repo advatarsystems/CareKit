@@ -188,11 +188,11 @@ public extension ChartTaskView where Header == _ChartTaskViewHeader, Chart == _C
     /// - Parameter detail: Detail text to display in the header.
     /// - Parameter instructions: Instructions text to display under the header.
     /// - Parameter footer: View to inject under the instructions. Specified content will be stacked vertically.
-    init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, showScore: Bool = false, detailDisclosure: Bool = false, @ViewBuilder footer: () -> Footer) {
+    init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, insulins: [InsulinViewModel]? = nil, high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, showScore: Bool = false, detailDisclosure: Bool = false, @ViewBuilder footer: () -> Footer) {
         self.init(isHeaderPadded: true, isFooterPadded: false, instructions: instructions, header: {
             _ChartTaskViewHeader(title: title, detail: detail, action: {}, showScore: showScore, detailDisclosure: detailDisclosure, score: 0)
         }, chart: {
-            _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], high: high, mmol: mmol, startDate: startDate, endDate: endDate)
+            _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], insulins: insulins ?? [], high: high, mmol: mmol, startDate: startDate, endDate: endDate)
         }, footer: footer)
     }
 }
@@ -201,9 +201,9 @@ public extension ChartTaskView where Footer == _ChartTaskViewFooter, Chart == _C
 
     /// Create an instance.
     /// - Parameter instructions: Instructions text to display under the header.
-    init(instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, @ViewBuilder header: () -> Header) {
+    init(instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, insulins: [InsulinViewModel]? = nil, high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, @ViewBuilder header: () -> Header) {
         self.init(isHeaderPadded: false, isFooterPadded: true, instructions: instructions, header: header, chart: {
-            _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], high: high, mmol: mmol, startDate: startDate,endDate: endDate)
+            _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], insulins: insulins ?? [], high: high, mmol: mmol, startDate: startDate,endDate: endDate)
         },footer: {
             _ChartTaskViewFooter(title: Text("title"), detail: Text("detail"))
         })
@@ -216,12 +216,12 @@ public extension ChartTaskView where Header == _ChartTaskViewHeader, Chart == _C
     /// - Parameter title: Title text to display in the header.
     /// - Parameter detail: Detail text to display in the header.
     /// - Parameter instructions: Instructions text to display under the header.
-    init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil,  high: Double? = nil, mmol: Bool = true, average: Double? = nil, variability: Int? = nil, inRange: Int? = nil, score: Int? = nil, startDate: Date? = nil, endDate: Date? = nil, showScore: Bool = false, detailDisclosure: Bool = false, action: @escaping () -> Void = {}) {
+    init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, insulins: [InsulinViewModel]? = nil, high: Double? = nil, mmol: Bool = true, average: Double? = nil, variability: Int? = nil, inRange: Int? = nil, score: Int? = nil, startDate: Date? = nil, endDate: Date? = nil, showScore: Bool = false, detailDisclosure: Bool = false, action: @escaping () -> Void = {}) {
        
         self.init(isHeaderPadded: true, isFooterPadded: true, instructions: instructions, foods: foods, header: {
             _ChartTaskViewHeader(title: title, detail: detail, action: action, showScore: showScore, detailDisclosure: detailDisclosure, score: score)
         }, chart: {
-            _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], high: high, mmol: mmol, startDate: startDate, endDate: endDate)
+            _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], insulins: insulins ?? [], high: high, mmol: mmol, startDate: startDate, endDate: endDate)
         }, footer: {
             _ChartTaskViewFooter(title: Text("title"), detail: Text("detail"), average: average, variability: variability, inRange: inRange, score: score)
         })
@@ -364,7 +364,7 @@ public struct _ChartTaskViewList: View {
     fileprivate let detail: Text?
     private let foods: [FoodViewModel]
 
-    public init(title: Text, detail: Text,foods: [FoodViewModel]) {
+    public init(title: Text, detail: Text, foods: [FoodViewModel]) {
         self.title = title
         self.detail = detail
         self.foods = foods
@@ -386,12 +386,33 @@ public struct _ChartTaskViewList: View {
     }
 }
 
+private enum ChartViewEventType {
+    case food
+    case insulin
+}
+
+private struct ChartViewEventModel: Identifiable, Equatable {
+    
+    let id = UUID()
+    let date: Date
+    let value: Double
+    let type: ChartViewEventType
+    
+    static public func == (lhs: ChartViewEventModel, rhs: ChartViewEventModel) -> Bool {
+        return lhs.value == rhs.value && lhs.date == rhs.date && lhs.type == rhs.type
+    }
+}
+
+
+
 public struct _ChartTaskViewChart: View {
     
     let symbolSize: CGFloat = 100
     let lineWidth: CGFloat = 3
     private let curve: [MyChartPoint]
     private let foods: [FoodViewModel]
+    private let insulins: [ChartViewEventModel]
+    private let events: [ChartViewEventModel]
     private let high: Double?
     var low: Double = 3.9
     @State var selectedElement: MyChartPoint?
@@ -402,7 +423,7 @@ public struct _ChartTaskViewChart: View {
     var data = ChartData()
     var zone = ChartData()
     
-    init(curve: [MyChartPoint], foods: [FoodViewModel], high: Double?, mmol: Bool, startDate: Date? = nil, endDate: Date? = nil) {
+    init(curve: [MyChartPoint], foods: [FoodViewModel], insulins: [InsulinViewModel], high: Double?, mmol: Bool, startDate: Date? = nil, endDate: Date? = nil) {
         if let start = startDate, let end = endDate {
             self.curve = curve.filter{ $0.date >= start && $0.date <= end
                 
@@ -459,10 +480,15 @@ public struct _ChartTaskViewChart: View {
         }
         
         var newFoods = [FoodViewModel]()
+        var newFoodEvents = [ChartViewEventModel]()
         for (findex,food) in foods.enumerated().reversed() {
             if curve.isEmpty {
                 let newFood = FoodViewModel(name: food.name, date: food.date, score: food.score, startGlucose: 0, index: 0)
                 newFoods.append(newFood)
+                
+                let newFoodEvent = ChartViewEventModel(date: food.date, value: 0.0, type: .food)
+                newFoodEvents.append(newFoodEvent)
+
             } else {
                 var prev: MyChartPoint = curve.first!
                 for (_,point) in curve.enumerated().reversed() {
@@ -470,6 +496,10 @@ public struct _ChartTaskViewChart: View {
                     if point.date != prev.date, food.date >= prev.date, food.date <= point.date {
                         let newFood = FoodViewModel(name: food.name, date: food.date, score: food.score, startGlucose: point.value, index: findex+1)
                         newFoods.append(newFood)
+                        
+                        let newFoodEvent = ChartViewEventModel(date: food.date, value: point.value, type: .food)
+                        newFoodEvents.append(newFoodEvent)
+
                     }
                     prev = point
                 }
@@ -478,6 +508,30 @@ public struct _ChartTaskViewChart: View {
         print("ADD: \(newFoods.count) \(min(newFoods.count,4))")
         let maxCount = min(newFoods.count,4)
         self.foods = Array(newFoods[0..<maxCount])
+        
+        var newInsulinEvents = [ChartViewEventModel]()
+        for (findex, insulin) in insulins.enumerated().reversed() {
+            if curve.isEmpty {
+                let newInsulinEvent = ChartViewEventModel(date: insulin.date, value: 0, type: .insulin)
+                newInsulinEvents.append(newInsulinEvent)
+            } else {
+                var prev: MyChartPoint = curve.first!
+                for (_,point) in curve.enumerated().reversed() {
+                   // let match = point.date != prev.date && food.date >= prev.date  && food.date <= point.date
+                    if point.date != prev.date, insulin.date >= prev.date, insulin.date <= point.date {
+                        let newInsulinEvent = ChartViewEventModel(date: insulin.date, value: point.value, type: .insulin)
+                        newInsulinEvents.append(newInsulinEvent)
+                    }
+                    prev = point
+                }
+            }
+        }
+        
+        self.insulins = newInsulinEvents
+        self.events = (newFoodEvents+newInsulinEvents).sorted(by: { event1, event2 in
+            event1.date > event2.date
+        })
+        
     }
     
     public var body: some View {
@@ -513,16 +567,20 @@ public struct _ChartTaskViewChart: View {
                     .lineStyle(StrokeStyle(lineWidth: series.lineWidth))
                     .symbolSize(symbolSize).opacity(0.1)
                 }
-                ForEach(foods) { food in
+                ForEach(Array(events.enumerated()), id: \.offset) { index, event in
+                //ForEach(events) { event in
                     PointMark(
-                        x: .value("Day", food.date),
-                        y: .value("Sales", food.startGlucose)
+                        x: .value("Day", event.date),
+                        y: .value("Sales", event.value)
                     )
                     .symbolSize(symbolSize*3)
                     .symbol {
-                        Image(systemName: "\(foods.count-food.index+1).circle.fill").opacity(1.0).zIndex(10).background(
+                        let shape: String = event.type == .food ? ".circle.fill" : ".square.fill"
+                        let ordinal = events.count-index
+                        let systemName: String = "\(ordinal)"+shape
+                        Image(systemName: systemName).opacity(1.0).zIndex(10).background(
                             Color(UIColor.systemBackground).mask(Circle())
-                          )
+                        ).foregroundColor(event.type == .food ? .red:.purple)
                     }.foregroundStyle(.red)
                     .opacity(1.0)
                 }
