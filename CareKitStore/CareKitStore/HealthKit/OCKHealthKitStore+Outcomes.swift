@@ -170,7 +170,33 @@ public extension OCKHealthKitPassthroughStore {
                     guard !sample.values.isEmpty else { return nil } // Don't return an outcome for events where no HealthKit values exist.
                     let outcomeValues = sample.values.map { OCKOutcomeValue($0, units: task.healthKitLinkage.unit.unitString) }
                     let outcomeDates = sample.samples.map { $0.startDate }
-                    let metadatas = sample.samples.map { $0.metadata ?? [:]}
+                    var metadatas = sample.samples.map { $0.metadata ?? [:]}
+                    if let converted = metadatas as? [[String:String]] {
+                        // do nothing
+                    } else  {
+                        var newMetas = [[String:String]]()
+                        for metas in metadatas {
+
+                            for meta in metas {
+                                let value = meta.value
+                                if let v = value as? Int {
+                                    let newMeta = [meta.key: String(v)]
+                                    newMetas.append(newMeta)
+                                } else if let v = value as? Double {
+                                    let newMeta = [meta.key: String(v)]
+                                    newMetas.append(newMeta)
+                                } else if let v = value as? Date {
+                                    let newMeta = [meta.key: String(describing:v)]
+                                    newMetas.append(newMeta)
+                                } else if let v = value as? String {
+                                    let newMeta = [meta.key: v]
+                                    newMetas.append(newMeta)
+                                }
+                            }
+                        }
+                        metadatas = newMetas
+                        //  as? [[String:String]]
+                    }
                     let correspondingEvent = events[index]
                     let isOwnedByApp = !sample.samples.isEmpty && sample.samples.allSatisfy({ $0.sourceRevision.source == HKSource.default() })
                     return OCKHealthKitOutcome(taskUUID: task.uuid,

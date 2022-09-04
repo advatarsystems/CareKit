@@ -43,7 +43,7 @@ public struct FoodViewModel: Identifiable, Equatable {
     public var timeInRange: Double?
 
     public var index: Int
-    
+    // FIXME: Should ud be there too?
     static public func == (lhs: FoodViewModel, rhs: FoodViewModel) -> Bool {
         return lhs.name == rhs.name && lhs.date == rhs.date && lhs.score == rhs.score
     }
@@ -181,7 +181,7 @@ public struct FoodViewModel: Identifiable, Equatable {
         //let foodCorrelation = HKCorrelation(type: foodType, start: self.date, end: self.date, objects: energyConsumedSamples, metadata: metadata)
         
         //print("FOODSCORE: foodCorrelation \(foodCorrelation)")
-        
+        // FIXME: Probably better to switch order to prevent duplicates?
         healthStore.save(energyConsumedSample) { (success, error) in
             if let error = error {
                 print("FOODSCORE: update \(error)")
@@ -205,7 +205,6 @@ public struct FoodViewModel: Identifiable, Equatable {
                     }
                 }
                 healthStore.execute(query)
-                
             }
         }
         

@@ -189,6 +189,8 @@ public extension ChartTaskView where Header == _ChartTaskViewHeader, Chart == _C
     /// - Parameter instructions: Instructions text to display under the header.
     /// - Parameter footer: View to inject under the instructions. Specified content will be stacked vertically.
     init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, insulins: [InsulinViewModel]? = nil, high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, showScore: Bool = false, detailDisclosure: Bool = false, @ViewBuilder footer: () -> Footer) {
+        print("INSULIN: insulins \(insulins)")
+
         self.init(isHeaderPadded: true, isFooterPadded: false, instructions: instructions, header: {
             _ChartTaskViewHeader(title: title, detail: detail, action: {}, showScore: showScore, detailDisclosure: detailDisclosure, score: 0)
         }, chart: {
@@ -202,6 +204,8 @@ public extension ChartTaskView where Footer == _ChartTaskViewFooter, Chart == _C
     /// Create an instance.
     /// - Parameter instructions: Instructions text to display under the header.
     init(instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, insulins: [InsulinViewModel]? = nil, high: Double? = nil, mmol: Bool = true, startDate: Date? = nil, endDate: Date? = nil, @ViewBuilder header: () -> Header) {
+        print("INSULIN: insulins \(insulins)")
+
         self.init(isHeaderPadded: false, isFooterPadded: true, instructions: instructions, header: header, chart: {
             _ChartTaskViewChart(curve: values ?? [], foods: foods ?? [], insulins: insulins ?? [], high: high, mmol: mmol, startDate: startDate,endDate: endDate)
         },footer: {
@@ -217,7 +221,8 @@ public extension ChartTaskView where Header == _ChartTaskViewHeader, Chart == _C
     /// - Parameter detail: Detail text to display in the header.
     /// - Parameter instructions: Instructions text to display under the header.
     init(title: Text, detail: Text? = nil, instructions: Text? = nil, values: [MyChartPoint]? = nil, foods: [FoodViewModel]? = nil, insulins: [InsulinViewModel]? = nil, high: Double? = nil, mmol: Bool = true, average: Double? = nil, variability: Int? = nil, inRange: Int? = nil, score: Int? = nil, startDate: Date? = nil, endDate: Date? = nil, showScore: Bool = false, detailDisclosure: Bool = false, action: @escaping () -> Void = {}) {
-       
+        print("INSULIN: insulins \(insulins)")
+
         self.init(isHeaderPadded: true, isFooterPadded: true, instructions: instructions, foods: foods, header: {
             _ChartTaskViewHeader(title: title, detail: detail, action: action, showScore: showScore, detailDisclosure: detailDisclosure, score: score)
         }, chart: {
@@ -440,17 +445,20 @@ public struct _ChartTaskViewChart: View {
         if !mmol {
             low *= 18.0
         }
+        var startOfDay = Date()
+        var endOfDay = Date()
         
         if let thisDay = self.curve.first?.date {
-            var startOfDay = Calendar.current.startOfDay(for: thisDay)
+            startOfDay = Calendar.current.startOfDay(for: thisDay)
             let oneday: TimeInterval = 24*60*60
-            var endOfDay = startOfDay.addingTimeInterval(oneday)
+            endOfDay = startOfDay.addingTimeInterval(oneday)
             
             if let start = startDate, let end = endDate {
                 startOfDay = start
                 endOfDay = end
             }
             
+            print("INSULIN: startOfDay \(startOfDay) endOfDay \(endOfDay)")
             var value = 3.9
             if !mmol {
                 value *= 18.0
@@ -493,7 +501,7 @@ public struct _ChartTaskViewChart: View {
                 var prev: MyChartPoint = curve.first!
                 for (_,point) in curve.enumerated().reversed() {
                    // let match = point.date != prev.date && food.date >= prev.date  && food.date <= point.date
-                    if point.date != prev.date, food.date >= prev.date, food.date <= point.date {
+                    if point.date != prev.date, food.date >= prev.date, food.date <= point.date, food.date >= startOfDay, food.date <= endOfDay {
                         let newFood = FoodViewModel(name: food.name, date: food.date, score: food.score, startGlucose: point.value, index: findex+1)
                         newFoods.append(newFood)
                         
@@ -518,7 +526,7 @@ public struct _ChartTaskViewChart: View {
                 var prev: MyChartPoint = curve.first!
                 for (_,point) in curve.enumerated().reversed() {
                    // let match = point.date != prev.date && food.date >= prev.date  && food.date <= point.date
-                    if point.date != prev.date, insulin.date >= prev.date, insulin.date <= point.date {
+                    if point.date != prev.date, insulin.date >= prev.date, insulin.date <= point.date, insulin.date >= startOfDay, insulin.date <= endOfDay {
                         let newInsulinEvent = ChartViewEventModel(date: insulin.date, value: point.value, type: .insulin)
                         newInsulinEvents.append(newInsulinEvent)
                     }
