@@ -31,7 +31,7 @@ import Foundation
 import SwiftUI
 import Charts
 
-public class MyChartPoint: CustomStringConvertible {
+public class MyChartPoint: Codable, CustomStringConvertible {
     
     public var description: String  {
         return "{value:\(value), date:\(date)}"
