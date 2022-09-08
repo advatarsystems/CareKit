@@ -171,8 +171,11 @@ public extension OCKHealthKitPassthroughStore {
                     let outcomeValues = sample.values.map { OCKOutcomeValue($0, units: task.healthKitLinkage.unit.unitString) }
                     let outcomeDates = sample.samples.map { $0.startDate }
                     var metadatas = sample.samples.map { $0.metadata ?? [:]}
-                    if let converted = metadatas as? [[String:String]] {
+                    
+                    // FIXME: If we change to Any we are now longer Codible....
+                    if let _ = metadatas as? [[String:String]] {
                         // do nothing
+                        //print("META: \(converted) was already [[String:String]]")
                     } else  {
                         var newMetas = [[String:String]]()
                         for metas in metadatas {
