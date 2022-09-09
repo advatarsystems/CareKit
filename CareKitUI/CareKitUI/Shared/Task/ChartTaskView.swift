@@ -255,7 +255,6 @@ public struct _ChartTaskViewHeader: View {
                 HeaderView(title: title, detail: detail, image: nil)
                 Spacer()
                 HStack {
-                    
                     if showScore, let score = score {
                         Text(String(score))
                             .font(.title)
