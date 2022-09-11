@@ -127,7 +127,6 @@ open class OCKCompletionRingView: OCKView {
             animationHandler()
         }
          
-        
         ringView.setProgress(value, animated: animated)
     }
 
