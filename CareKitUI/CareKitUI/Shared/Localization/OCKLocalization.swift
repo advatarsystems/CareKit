@@ -42,7 +42,7 @@ public class OCKLocalization {
         value: String = "",
         comment: String = ""
     ) -> String {
-
+ 
         // Find a specified or main bundle override for the given `key`
         let str: String = {
             switch bundle {
@@ -67,14 +67,15 @@ public class OCKLocalization {
         // If the string does not equal the key, there was an override in the main bundle
         guard str == key else { return str }
 
-        // Use this framework's localizable strings if an override is not found
-        return NSLocalizedString(
+        let result = NSLocalizedString(
             key,
             tableName: tableName,
             bundle: Bundle(for: OCKLocalization.self),
             value: value,
             comment: comment
         )
+        // Use this framework's localizable strings if an override is not found
+        return result
 
     }
 

@@ -30,17 +30,17 @@
 
 import Foundation
 
-enum OS: String {
+public enum OS: String {
     case iOS, watchOS
 }
 
 @propertyWrapper
-struct OSValue<Value> {
+public struct OSValue<Value> {
 
     private let values: [OS: Value]
     private let defaultValue: Value
 
-    var wrappedValue: Value {
+    public var wrappedValue: Value {
         #if os(iOS)
         return values[.iOS] ?? defaultValue
         #elseif os(watchOS)
@@ -50,7 +50,7 @@ struct OSValue<Value> {
         #endif
     }
 
-    init(values: [OS: Value], defaultValue: Value) {
+    public init(values: [OS: Value], defaultValue: Value) {
         self.values = values
         self.defaultValue = defaultValue
     }

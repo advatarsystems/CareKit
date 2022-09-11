@@ -109,8 +109,6 @@ open class OCKCompletionRingView: OCKView {
         if value > 0.001 {
             checkmarkImageView.text = (100.0*value).string(toPlaces: 0)
             checkmarkImageView.textColor = strokeColor
-        } else {
-            print("ADHERENCE: value \(value)")
         }
         
         if checkmarkAnimator.isRunning {

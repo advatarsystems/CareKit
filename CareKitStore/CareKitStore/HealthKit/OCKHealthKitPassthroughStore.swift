@@ -278,7 +278,7 @@ public final class OCKHealthKitPassthroughStore: OCKEventStore {
                                 group.leave()
                                 return
                             }
-                            print("INSULIN: sample metadata \(sample.metadata)")
+                            print("INSULIN: sample metadata \(String(describing: sample.metadata))")
                             if let metadata = sample.metadata as? [String: Int] {
                                 var stringMetadata = [String:String]()
                                 for (key,value) in metadata {

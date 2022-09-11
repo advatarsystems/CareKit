@@ -36,7 +36,7 @@ extension Double {
     }
 }
 
-extension CGFloat {
+public extension CGFloat {
 
     /// Scaled value for the current size category.
     func scaled() -> CGFloat {
