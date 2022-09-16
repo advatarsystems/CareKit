@@ -128,7 +128,6 @@ struct OCKScheduleUtility {
         guard !events.isEmpty else { return nil }
         let completed = events.filter { $0.outcome != nil }.count
         let remaining = events.count - completed
-        print("remaining \(remaining)")
         let format = OCKLocalization.localized("EVENTS_REMAINING",
                                                tableName: "Localizable",
                                                bundle: nil,

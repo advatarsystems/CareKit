@@ -79,6 +79,8 @@ open class OCKInstructionsTaskView: OCKView, OCKTaskDisplayable {
     /// Handles events related to an `OCKTaskDisplayable` object.
     public weak var delegate: OCKTaskViewDelegate?
 
+    public weak var tapDelegate: OCKTapViewDelegate?
+
     /// The button on the bottom of the view. The background color is the `tintColor` when in a normal state. and gray when
     /// in a selected state.
     public let completionButton = OCKLabeledButton()

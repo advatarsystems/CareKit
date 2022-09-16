@@ -35,8 +35,14 @@ import UIKit
 public protocol OCKTaskDisplayable: AnyObject {
     /// Handles events related to an `OCKTaskDisplayable` object.
     var delegate: OCKTaskViewDelegate? { get set }
+    var tapDelegate: OCKTapViewDelegate? { get set }
 }
 
+public protocol OCKTapViewDelegate: AnyObject {
+    
+    func taskView(_ taskView: UIView & OCKTaskDisplayable, didTapEvent isComplete: Bool, at indexPath: IndexPath, sender: Any?)
+
+}
 /// Handles events related to an `OCKTaskDisplayable` object.
 public protocol OCKTaskViewDelegate: AnyObject {
 

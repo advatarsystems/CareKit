@@ -63,6 +63,8 @@ open class OCKLogTaskView: OCKView, OCKTaskDisplayable {
     /// Handles events related to an `OCKTaskDisplayable` object.
     public weak var delegate: OCKTaskViewDelegate?
 
+    public weak var tapDelegate: OCKTapViewDelegate?
+
     /// The header view that shows a separator and a `detailDisclosureImage`.
     public let headerView = OCKHeaderView {
         $0.showsSeparator = true

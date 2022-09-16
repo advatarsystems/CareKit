@@ -206,8 +206,6 @@ public final class OCKHealthKitPassthroughStore: OCKEventStore {
                     backgroundCompletionHandler()
                     return
                 }
-
-                //print("INSULIN: self? \(self != nil)")
       
                 guard let samples = additions, !samples.isEmpty else {
                     // There are some cases when the anchor query fires but both additions and deletions are empty.
@@ -239,7 +237,6 @@ public final class OCKHealthKitPassthroughStore: OCKEventStore {
     // For each sample we need to fetch definition of the task that is valid when the sample was recorded.
     // We then attempt to determine if the sample lines up with any events for that version of the task's schedule.
     private func handleHealthKitDataCreatedOrUpdated(task: OCKHealthKitTask, samples: [HKSample], completion: @escaping OCKResultClosure<Void>) {
-        print("INSULIN: handleHealthKitDataCreatedOrUpdated")
         let group = DispatchGroup()
         var fetchError: OCKStoreError?
 
@@ -258,7 +255,6 @@ public final class OCKHealthKitPassthroughStore: OCKEventStore {
                         let task = tasks.first,
                         let event = task.schedule.events(from: sample.startDate, to: sample.endDate).first
                     else {
-                        print("INSULIN: no first task or event")
                         group.leave()
                         return
                     }
@@ -274,11 +270,9 @@ public final class OCKHealthKitPassthroughStore: OCKEventStore {
                                 let delegate = store.outcomeDelegate,
                                 var outcome = event.outcome
                             else {
-                                print("INSULIN: no store, delegate or outcome")
                                 group.leave()
                                 return
                             }
-                            print("INSULIN: sample metadata \(String(describing: sample.metadata))")
                             if let metadata = sample.metadata as? [String: Int] {
                                 var stringMetadata = [String:String]()
                                 for (key,value) in metadata {

@@ -74,6 +74,8 @@ open class OCKSimpleTaskView: OCKView, OCKTaskDisplayable {
     /// Handles events related to an `OCKTaskDisplayable` object.
     public weak var delegate: OCKTaskViewDelegate?
 
+    public weak var tapDelegate: OCKTapViewDelegate?
+
     /// A default version of an `OCKHeaderView`.
     public let headerView = OCKHeaderView()
 

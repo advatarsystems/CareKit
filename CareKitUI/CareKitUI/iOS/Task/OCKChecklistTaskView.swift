@@ -95,6 +95,8 @@ open class OCKChecklistTaskView: OCKView, OCKTaskDisplayable {
     /// Handles events related to an `OCKTaskDisplayable` object.
     public weak var delegate: OCKTaskViewDelegate?
 
+    public weak var tapDelegate: OCKTapViewDelegate?
+
     /// The header that shows a `detailDisclosureImage`.
     public let headerView = OCKHeaderView {
         $0.showsDetailDisclosure = true
