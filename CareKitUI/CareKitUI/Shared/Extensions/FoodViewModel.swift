@@ -175,12 +175,6 @@ public struct FoodViewModel: Identifiable, Equatable {
         let energyQuantityConsumed = HKQuantity(unit: HKUnit.joule(), doubleValue: 0.0)
         let energyConsumedType = HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.dietaryEnergyConsumed)!
         let energyConsumedSample = HKQuantitySample(type: energyConsumedType, quantity: energyQuantityConsumed, start: self.date, end: self.date, metadata: metadata)
-        //let energyConsumedSamples: Set<HKSample> = [energyConsumedSample]
-        
-        //let foodType = HKCorrelationType.correlationType(forIdentifier: HKCorrelationTypeIdentifier.food)!
-        //let foodCorrelation = HKCorrelation(type: foodType, start: self.date, end: self.date, objects: energyConsumedSamples, metadata: metadata)
-        
-        //print("FOODSCORE: foodCorrelation \(foodCorrelation)")
         // FIXME: Probably better to switch order to prevent duplicates?
         healthStore.save(energyConsumedSample) { (success, error) in
             if let error = error {
@@ -188,9 +182,7 @@ public struct FoodViewModel: Identifiable, Equatable {
             } else {
                 print("ADDFOOD: update Saved \(String(describing: energyConsumedSample.metadata))")
                // Now delete the previous sample
-                
                 let predicate = HKQuery.predicateForObjects(withMetadataKey: HKMetadataKeyExternalUUID, allowedValues: [self.id.uuidString])
-                
                 let query = HKSampleQuery(sampleType: energyConsumedType, predicate: predicate, limit: 0, sortDescriptors: nil) { query, samples, error in
                     if let samples = samples, !samples.isEmpty {
                         self.healthStore.delete(samples) { success, error in
