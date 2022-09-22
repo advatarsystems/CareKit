@@ -73,6 +73,9 @@ open class OCKFeaturedContentView: OCKView, OCKCardable {
     /// Primary multi-line label.
     public var label: OCKLabel { detailedImageView.label }
 
+    /// Primary multi-line label.
+    public var subtitle: OCKLabel { detailedImageView.subtitle }
+
     /// Large background image.
     public var imageView: UIImageView { detailedImageView.imageView }
 

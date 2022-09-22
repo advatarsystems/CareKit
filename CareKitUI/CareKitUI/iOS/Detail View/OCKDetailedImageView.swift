@@ -48,6 +48,14 @@ class OCKDetailedImageView: OCKView {
         label.lineBreakMode = .byWordWrapping
         return label
     }()
+    
+    let subtitle: OCKLabel = {
+        let label = OCKLabel(textStyle: .body, weight: .regular)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 0
+        label.lineBreakMode = .byWordWrapping
+        return label
+    }()
 
     let imageView: UIImageView = {
         let imageView = UIImageView()
