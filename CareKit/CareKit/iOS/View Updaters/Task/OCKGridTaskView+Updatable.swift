@@ -58,7 +58,6 @@ extension OCKGridTaskCell: OCKEventUpdatable {
             return
         }
 
-        //print("CHALLENGE: event \(event)")
         let isComplete = event.outcome != nil
         let title = isComplete ?
             OCKScheduleUtility.completedTimeLabel(for: event) :

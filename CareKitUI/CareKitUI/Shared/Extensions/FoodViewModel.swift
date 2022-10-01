@@ -154,7 +154,7 @@ public struct FoodViewModel: Identifiable, Equatable {
     
     public func update(with score: Double, startGlucose: Double, endGlucose: Double, glucosePeak: Double, glucoseDelta: Double, timeToBaseline: Double?, glucoseAverage:  Double, glucoseVariability: Double, timeInRange: Double) {
         
-        print("FOODSCORE: update score \(score) startGlucose \(startGlucose) endGlucose \(endGlucose) glucosePeak \(glucosePeak) glucoseDelta \(glucoseDelta) timeToBaseline \(String(describing: timeToBaseline))")
+        logger.info("FOODSCORE: update score \(score) startGlucose \(startGlucose) endGlucose \(endGlucose) glucosePeak \(glucosePeak) glucoseDelta \(glucoseDelta) timeToBaseline \(String(describing: timeToBaseline))")
         
         //let newModel = FoodViewModel(name: self.name, date: self.date, score: score, startGlucose: startGlucose, glucosePeak: glucosePeak, glucoseDelta: glucoseDelta, index: self.index)
         
@@ -178,22 +178,22 @@ public struct FoodViewModel: Identifiable, Equatable {
         // FIXME: Probably better to switch order to prevent duplicates?
         healthStore.save(energyConsumedSample) { (success, error) in
             if let error = error {
-                print("FOODSCORE: update \(error)")
+                logger.error("FOODSCORE: update \(error)")
             } else {
-                print("ADDFOOD: update Saved \(String(describing: energyConsumedSample.metadata))")
+                logger.info("ADDFOOD: update Saved \(String(describing: energyConsumedSample.metadata))")
                // Now delete the previous sample
                 let predicate = HKQuery.predicateForObjects(withMetadataKey: HKMetadataKeyExternalUUID, allowedValues: [self.id.uuidString])
                 let query = HKSampleQuery(sampleType: energyConsumedType, predicate: predicate, limit: 0, sortDescriptors: nil) { query, samples, error in
                     if let samples = samples, !samples.isEmpty {
                         self.healthStore.delete(samples) { success, error in
                             if let error = error {
-                                print("ADDFOOD: update fail \(error)")
+                                logger.error("ADDFOOD: update fail \(error)")
                             } else {
-                                print("ADDFOOD: update deleted \(samples.count) samples")
+                                logger.info("ADDFOOD: update deleted \(samples.count) samples")
                             }
                         }
                     } else {
-                        print("ADDFOOD: update no samples found")
+                        logger.info("ADDFOOD: update no samples found")
                     }
                 }
                 healthStore.execute(query)

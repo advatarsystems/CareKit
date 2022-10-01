@@ -72,3 +72,35 @@ private extension OSLog {
 
     static let ui = OSLog(subsystem: subsystem, category: "CareKitUI")
 }
+
+
+struct logger {
+    private static let oslogger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "com.advatarsystems")
+
+    public static func info(_ message: String, functionName: String = #function,
+                            lineNumber: Int = #line,
+                            columnNumber: Int = #column) {
+        logger.oslogger.info("💙 INFO \(functionName)#\(lineNumber) \(message)")
+    }
+    
+    public static func verbose(_ message: String, functionName: String = #function,
+                            lineNumber: Int = #line,
+                            columnNumber: Int = #column) {
+        #if targetEnvironment(simulator)
+        logger.oslogger.info("💜 VERBOSE \(functionName)#\(lineNumber) \(message)")
+        #endif
+    }
+
+    public static func debug(_ message: String, functionName: String = #function,
+                            lineNumber: Int = #line,
+                            columnNumber: Int = #column) {
+        logger.oslogger.debug("💚 DEBUG \(functionName)#\(lineNumber) \(message)")
+    }
+    
+    public static func error(_ message: String, functionName: String = #function,
+                            lineNumber: Int = #line,
+                            columnNumber: Int = #column) {
+        logger.oslogger.error("❤️ ERROR \(functionName)#\(lineNumber) \(message)")
+    }
+
+}

@@ -156,7 +156,7 @@ public extension OCKAnyReadOnlyEventStore {
             if dayIndex < days.count && dayIndex >= 0 {
                 days[dayIndex].append(event)
             } else {
-                print("dayIndex \(dayIndex)")
+                logger.info("dayIndex \(dayIndex)")
             }
         }
         return days

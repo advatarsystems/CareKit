@@ -175,7 +175,6 @@ public extension OCKHealthKitPassthroughStore {
                     // FIXME: If we change to Any we are now longer Codible....
                     if let _ = metadatas as? [[String:String]] {
                         // do nothing
-                        //print("META: \(converted) was already [[String:String]]")
                     } else  {
                         var newMetas = [[String:String]]()
                         for metas in metadatas {

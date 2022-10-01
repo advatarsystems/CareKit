@@ -254,7 +254,7 @@ public struct _EventTaskViewHeader: View {
                 Spacer()
                 Image(systemName: "chevron.right")
             }.onTapGesture {
-                print("EVENT: _EventHeaderView tapped")
+                logger.info("EVENT: _EventHeaderView tapped")
             }
             Divider()
         }

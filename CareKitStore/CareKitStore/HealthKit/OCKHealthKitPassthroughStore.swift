@@ -93,7 +93,7 @@ public final class OCKHealthKitPassthroughStore: OCKEventStore {
 
     internal func startObservingHealthKit(task: OCKHealthKitTask) {
         guard let sampleType = HKSampleType.quantityType(forIdentifier: task.healthKitLinkage.quantityIdentifier) else {
-            print("ERROR: startObservingHealthKit \(task.healthKitLinkage.quantityIdentifier)")
+            logger.error("ERROR: startObservingHealthKit \(task.healthKitLinkage.quantityIdentifier)")
             return
         }
         guard !activeObserverQueries.keys.contains(sampleType) else { return }
@@ -288,7 +288,7 @@ public final class OCKHealthKitPassthroughStore: OCKEventStore {
                             } else if let metadata = sample.metadata as? [String: String] {
                                 outcome.metadata = [metadata]
                             } else {
-                                print("ERROR: sample metadata could not convert \(String(describing: sample.metadata))")
+                                logger.error("sample metadata could not convert \(String(describing: sample.metadata))")
                             }
                             delegate.outcomeStore(store, didAddOutcomes: [outcome])
                             group.leave()

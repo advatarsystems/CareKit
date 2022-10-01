@@ -510,12 +510,12 @@ public struct _ChartTaskViewChart: View {
                 }
             }
         }
-        print("ADD: \(newFoods.count) \(min(newFoods.count,4))")
+        logger.info("ADD: \(newFoods.count) \(min(newFoods.count,4))")
         let maxCount = min(newFoods.count,4)
         self.foods = Array(newFoods[0..<maxCount])
         
         var newInsulinEvents = [ChartViewEventModel]()
-        for (findex, insulin) in insulins.enumerated().reversed() {
+        for (_, insulin) in insulins.enumerated().reversed() {
             if curve.isEmpty {
                 let newInsulinEvent = ChartViewEventModel(date: insulin.date, value: 0, type: .insulin)
                 newInsulinEvents.append(newInsulinEvent)

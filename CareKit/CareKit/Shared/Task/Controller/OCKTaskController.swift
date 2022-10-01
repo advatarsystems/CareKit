@@ -75,7 +75,7 @@ open class OCKTaskController: ObservableObject {
     open func fetchAndObserveEvents(forTaskQuery taskQuery: OCKTaskQuery, eventQuery: OCKEventQuery) {
         clearSubscriptions()
 
-        print("MULTI: OCKTaskController fetchAndObserveEvents eventQuery \(eventQuery)")
+        logger.info("CONCURRENCY: OCKTaskController fetchAndObserveEvents eventQuery \(eventQuery)")
         // We only subscribe to changes for the tasks and events that we receive in a query. It's possible that after initially fetching tasks and
         // events, a new task is added that matches the given task query. When that happens we must re-query.
         refreshOnAddedTaskNotificationFor(taskQuery: taskQuery, eventQuery: eventQuery)
@@ -127,6 +127,7 @@ open class OCKTaskController: ObservableObject {
     ///   - taskIDs: Fetch events whose tasks have the given IDs.
     ///   - eventQuery: A query used to fetch events in the store.
     open func fetchAndObserveEvents(forTaskIDs taskIDs: [String], eventQuery: OCKEventQuery) {
+        logger.info("CONCURRENCY: fetchAndObserveEvents forTaskIDs \(taskIDs) dateInterval \(eventQuery.dateInterval)")
         clearSubscriptions()
         refreshOnAddedTaskNotificationFor(taskIDs: taskIDs, query: eventQuery)
         fetchAndObserveEvents(forTaskIDs: taskIDs, eventQuery: eventQuery, overwritesViewModel: true, clearsViewModelOnFailure: true)
@@ -463,6 +464,7 @@ private extension OCKSynchronizedStoreManager {
 
     func fetchAnyEventsPublisher(taskIDs: [String], query: OCKEventQuery,
                                  errorHandler: ((OCKStoreError) -> Void)?) -> AnyPublisher<[[OCKAnyEvent]], Never> {
+        logger.info("fetchAnyEventsPublisher \(taskIDs) dateInterval \(query.dateInterval)")
         let publishers = taskIDs.map { id in
             fetchAnyEventsPublisher(taskID: id, query: query)
                 // Catch the error to continue the stream when an error occurs. I.E when we fail to find events for one task, continue to look

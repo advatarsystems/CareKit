@@ -65,7 +65,6 @@ class CareKitFHIRTests: XCTestCase {
         var coder = OCKDSTU2ObservationCoder()
         coder.getCareKitSchedule = { _ in OCKSchedule.dailyAtTime(hour: 0, minutes: 0, start: Date(), end: nil, text: nil, duration: .allDay) }
         let task = try coder.decode(resource)
-        print("OBSERVATION: \(task)")
         XCTAssert(task.id == "11")
         //XCTAssert(task.instructions == "2 puffs every 2-4 hours")
         //XCTAssert(task.schedule.elements.first?.interval == DateComponents(day: 1))

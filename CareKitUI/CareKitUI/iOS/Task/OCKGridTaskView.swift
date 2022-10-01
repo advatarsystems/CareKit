@@ -203,7 +203,7 @@ open class OCKGridTaskView: OCKView, OCKTaskDisplayable, UICollectionViewDelegat
 
     @objc
     private func didTapView() {
-        print("didTapView")
+        logger.info("didTapView")
         delegate?.didSelectTaskView(self, eventIndexPath: .init(row: 0, section: 0))
     }
 
@@ -213,7 +213,7 @@ open class OCKGridTaskView: OCKView, OCKTaskDisplayable, UICollectionViewDelegat
         collectionView.indexPathsForVisibleItems.forEach {
             let cell = collectionView.cellForItem(at: $0) as? OCKGridTaskView.DefaultCellType
             if cell?.completionButton === sender {
-                print("didTapCompletionButton")
+                logger.info("didTapCompletionButton")
                 tapDelegate?.taskView(self, didTapEvent: !sender.isSelected, at: $0, sender: sender)
                 delegate?.taskView(self, didCompleteEvent: !sender.isSelected, at: $0, sender: sender)
                 return

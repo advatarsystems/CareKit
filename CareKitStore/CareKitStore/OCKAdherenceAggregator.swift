@@ -76,7 +76,7 @@ public enum OCKAdherenceAggregator {
     private func computeValueCompletion(for events: [OCKAnyEvent],
                                           usingMetric computeMetric: (_ event: OCKAnyEvent) -> Double) -> OCKAdherence {
         guard !events.isEmpty else {
-            print("ADHERENCE: noEvents")
+            logger.info("ADHERENCE: noEvents")
             return .noEvents
         }
         // We know that score only has one outcome per day.
