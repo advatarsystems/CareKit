@@ -392,14 +392,14 @@ public struct _CompareTaskViewChart: View {
         var newFoods = [FoodViewModel]()
         for (findex,food) in foods.enumerated().reversed() {
             if curve.isEmpty {
-                let newFood = FoodViewModel(name: food.name, date: food.date, score: food.score, startGlucose: 0, index: 1, photo: food.photo)
+                let newFood = FoodViewModel(name: food.name, date: food.date, score: food.score, startGlucose: 0, index: 1)
                 newFoods.append(newFood)
             } else {
                 var prev: MyChartPoint = curve.first!
                 for (_,point) in curve.enumerated().reversed() {
                    // let match = point.date != prev.date && food.date >= prev.date  && food.date <= point.date
                     if point.date != prev.date, food.date >= prev.date, food.date <= point.date {
-                        let newFood = FoodViewModel(name: food.name, date: food.date, score: food.score, startGlucose: point.value, index: findex+1, photo: food.photo)
+                        let newFood = FoodViewModel(name: food.name, date: food.date, score: food.score, startGlucose: point.value, index: findex+1)
                         newFoods.append(newFood)
                     }
                     prev = point

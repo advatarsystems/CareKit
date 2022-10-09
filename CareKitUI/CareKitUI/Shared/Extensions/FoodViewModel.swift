@@ -43,6 +43,7 @@ public struct FoodViewModel: Identifiable, Equatable {
     public var glucoseVariability: Double?
     public var timeInRange: Double?
 
+    public var photoUrlString: String?
     public var photo: UIImage?
     
     public var index: Int
@@ -51,7 +52,7 @@ public struct FoodViewModel: Identifiable, Equatable {
         return lhs.name == rhs.name && lhs.date == rhs.date && lhs.score == rhs.score
     }
     
-    public init(uuidString: String? = nil , name: String, date: Date = Date(), score: Double? = nil, startGlucose: Double = 0.0, endGlucose: Double? = nil, glucosePeak: Double? = nil, glucoseDelta: Double? = nil, timeToBaseline: Double? = nil, glucoseAverage: Double? = nil, glucoseVariability: Double? = nil, timeInRange: Double? = nil, index: Int, photo: UIImage? = nil) {
+    public init(uuidString: String? = nil , name: String, date: Date = Date(), score: Double? = nil, startGlucose: Double = 0.0, endGlucose: Double? = nil, glucosePeak: Double? = nil, glucoseDelta: Double? = nil, timeToBaseline: Double? = nil, glucoseAverage: Double? = nil, glucoseVariability: Double? = nil, timeInRange: Double? = nil, index: Int, photoUrlString: String? = nil) {
         
         if let uuidString = uuidString, let uuid = UUID(uuidString: uuidString) {
             id = uuid
@@ -72,8 +73,10 @@ public struct FoodViewModel: Identifiable, Equatable {
         self.glucoseAverage = glucoseAverage
         self.glucoseVariability = glucoseVariability
         self.timeInRange = timeInRange
-        
-        self.photo = photo
+        self.photoUrlString = photoUrlString
+        if let urlString = photoUrlString {
+            self.photo = UIImage.fromURL(urlString)
+        }
         
     }
     
@@ -87,6 +90,7 @@ public struct FoodViewModel: Identifiable, Equatable {
         var glucoseAverage: Double?
         var glucoseVariability: Double?
         var timeInRange: Double?
+        var photoUrlString: String?
         var photo: UIImage?
         
         var id: UUID?
@@ -130,6 +134,7 @@ public struct FoodViewModel: Identifiable, Equatable {
             }
             
             if let urlString = metadataItem["HKMetadataKeyFoodPhotoURL"] as? String {
+                photoUrlString = urlString
                 photo = UIImage.fromURL(urlString)
                 print("META: \(name) has photo")
             } else {
@@ -159,8 +164,9 @@ public struct FoodViewModel: Identifiable, Equatable {
         self.startGlucose = startGlucose
         self.endGlucose = endGlucose
         self.date = date
+        self.photoUrlString = photoUrlString
         self.photo = photo
- 
+        
         
     }
     
@@ -171,10 +177,8 @@ public struct FoodViewModel: Identifiable, Equatable {
     public func update(with score: Double, startGlucose: Double, endGlucose: Double, glucosePeak: Double, glucoseDelta: Double, timeToBaseline: Double?, glucoseAverage:  Double, glucoseVariability: Double, timeInRange: Double) {
         
         logger.info("FOODSCORE: update score \(score) startGlucose \(startGlucose) endGlucose \(endGlucose) glucosePeak \(glucosePeak) glucoseDelta \(glucoseDelta) timeToBaseline \(String(describing: timeToBaseline))")
-        
-        //let newModel = FoodViewModel(name: self.name, date: self.date, score: score, startGlucose: startGlucose, glucosePeak: glucosePeak, glucoseDelta: glucoseDelta, index: self.index)
-        
-        let metadata: Dictionary<String, String> = [
+                
+        var metadata: Dictionary<String, String> = [
             HKMetadataKeyFoodType: self.name,
             HKMetadataKeyExternalUUID: UUID().uuidString, // Make it a new one so we can delete the old
             "HKMetadataKeyFoodScore": String(score),
@@ -188,6 +192,9 @@ public struct FoodViewModel: Identifiable, Equatable {
             "HKMetadataKeyFoodInRange": String(timeInRange)
         ]
         
+        if let urlString = self.photoUrlString {
+            metadata["HKMetadataKeyFoodPhotoURL"] = urlString
+        }
         let energyQuantityConsumed = HKQuantity(unit: HKUnit.joule(), doubleValue: 0.0)
         let energyConsumedType = HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.dietaryEnergyConsumed)!
         let energyConsumedSample = HKQuantitySample(type: energyConsumedType, quantity: energyQuantityConsumed, start: self.date, end: self.date, metadata: metadata)
@@ -245,9 +252,8 @@ public struct FoodViewModel: Identifiable, Equatable {
             for (index,sample) in samples.enumerated() {
                 let startDate = sample.startDate
                 if let metadata = sample.metadata, let foodType = metadata[HKMetadataKeyFoodType] as? String {
-                    
                     let trimmedAndLowercased = foodType.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                    let entry = FoodViewModel(name: trimmedAndLowercased, date: startDate, score: 1.0, index: index)
+                    let entry = FoodViewModel(name: trimmedAndLowercased, date: startDate, score: 1.0, index: index, photoUrlString: metadata["HKMetadataKeyFoodPhotoURL"] as? String)
                     
                     if unique {
                         if !cache.contains(trimmedAndLowercased) {

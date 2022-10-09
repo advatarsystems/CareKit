@@ -173,12 +173,11 @@ public extension OCKHealthKitPassthroughStore {
                     var metadatas = sample.samples.map { $0.metadata ?? [:]}
                     
                     // FIXME: If we change to Any we are now longer Codible....
-                    if let _ = metadatas as? [[String:String]] {
+                    if let _ = metadatas as? [[String: String]] {
                         // do nothing
                     } else  {
-                        var newMetas = [[String:String]]()
+                        var newMetas = [[String: String]]()
                         for metas in metadatas {
-
                             for meta in metas {
                                 let value = meta.value
                                 if let v = value as? Int {
@@ -197,7 +196,6 @@ public extension OCKHealthKitPassthroughStore {
                             }
                         }
                         metadatas = newMetas
-                        //  as? [[String:String]]
                     }
                     let correspondingEvent = events[index]
                     let isOwnedByApp = !sample.samples.isEmpty && sample.samples.allSatisfy({ $0.sourceRevision.source == HKSource.default() })
@@ -205,7 +203,7 @@ public extension OCKHealthKitPassthroughStore {
                                                taskOccurrenceIndex: correspondingEvent.occurrence,
                                                values: outcomeValues,
                                                dates: outcomeDates,
-                                               metadata: metadatas as? [[String:String]],
+                                               metadata: metadatas as? [[String: String]],
                                                isOwnedByApp: isOwnedByApp,
                                                healthKitUUIDs: Set(sample.samples.map { $0.uuid }))
                 }

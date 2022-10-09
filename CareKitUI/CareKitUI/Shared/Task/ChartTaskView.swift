@@ -488,7 +488,7 @@ public struct _ChartTaskViewChart: View {
         var newFoodEvents = [ChartViewEventModel]()
         for (findex,food) in foods.enumerated().reversed() {
             if curve.isEmpty {
-                let newFood = FoodViewModel(name: food.name, date: food.date, score: food.score, startGlucose: 0, index: 0, photo: food.photo)
+                let newFood = FoodViewModel(name: food.name, date: food.date, score: food.score, startGlucose: 0, index: 0)
                 newFoods.append(newFood)
                 
                 let newFoodEvent = ChartViewEventModel(date: food.date, value: 0.0, type: .food)
@@ -499,7 +499,7 @@ public struct _ChartTaskViewChart: View {
                 for (_,point) in curve.enumerated().reversed() {
                    // let match = point.date != prev.date && food.date >= prev.date  && food.date <= point.date
                     if point.date != prev.date, food.date >= prev.date, food.date <= point.date, food.date >= startOfDay, food.date <= endOfDay {
-                        let newFood = FoodViewModel(name: food.name, date: food.date, score: food.score, startGlucose: point.value, index: findex+1, photo: food.photo)
+                        let newFood = FoodViewModel(name: food.name, date: food.date, score: food.score, startGlucose: point.value, index: findex+1)
                         newFoods.append(newFood)
                         
                         let newFoodEvent = ChartViewEventModel(date: food.date, value: point.value, type: .food)
