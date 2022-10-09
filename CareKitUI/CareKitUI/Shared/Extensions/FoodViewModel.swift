@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 import HealthKit
 
 public struct Metadata {
@@ -42,13 +43,15 @@ public struct FoodViewModel: Identifiable, Equatable {
     public var glucoseVariability: Double?
     public var timeInRange: Double?
 
+    public var photo: UIImage?
+    
     public var index: Int
     // FIXME: Should ud be there too?
     static public func == (lhs: FoodViewModel, rhs: FoodViewModel) -> Bool {
         return lhs.name == rhs.name && lhs.date == rhs.date && lhs.score == rhs.score
     }
     
-    public init(uuidString: String? = nil , name: String, date: Date = Date(), score: Double? = nil, startGlucose: Double = 0.0, endGlucose: Double? = nil, glucosePeak: Double? = nil, glucoseDelta: Double? = nil, timeToBaseline: Double? = nil, glucoseAverage: Double? = nil, glucoseVariability: Double? = nil, timeInRange: Double? = nil, index: Int) {
+    public init(uuidString: String? = nil , name: String, date: Date = Date(), score: Double? = nil, startGlucose: Double = 0.0, endGlucose: Double? = nil, glucosePeak: Double? = nil, glucoseDelta: Double? = nil, timeToBaseline: Double? = nil, glucoseAverage: Double? = nil, glucoseVariability: Double? = nil, timeInRange: Double? = nil, index: Int, photo: UIImage? = nil) {
         
         if let uuidString = uuidString, let uuid = UUID(uuidString: uuidString) {
             id = uuid
@@ -70,6 +73,8 @@ public struct FoodViewModel: Identifiable, Equatable {
         self.glucoseVariability = glucoseVariability
         self.timeInRange = timeInRange
         
+        self.photo = photo
+        
     }
     
     public init(_ date: Date, metadata: [[String:Any]], startGlucose: Double = 0.0, endGlucose: Double? = nil, index: Int)  throws {
@@ -82,6 +87,7 @@ public struct FoodViewModel: Identifiable, Equatable {
         var glucoseAverage: Double?
         var glucoseVariability: Double?
         var timeInRange: Double?
+        var photo: UIImage?
         
         var id: UUID?
 
@@ -122,6 +128,14 @@ public struct FoodViewModel: Identifiable, Equatable {
             if let idString = metadataItem[HKMetadataKeyExternalUUID] as? String {
                 id = UUID(uuidString: idString)
             }
+            
+            if let urlString = metadataItem["HKMetadataKeyFoodPhotoURL"] as? String {
+                photo = UIImage.fromURL(urlString)
+                print("META: \(name) has photo")
+            } else {
+                print("META: \(name) has NO photo")
+            }
+
         }
         
         if let name = name {
@@ -145,6 +159,8 @@ public struct FoodViewModel: Identifiable, Equatable {
         self.startGlucose = startGlucose
         self.endGlucose = endGlucose
         self.date = date
+        self.photo = photo
+ 
         
     }
     
