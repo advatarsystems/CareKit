@@ -47,6 +47,11 @@ public struct OCKHealthKitLinkage: Equatable, Codable {
     /// A HealthKitQuantityIdentifier that describes the outcome's data type.
     public var quantityIdentifier: HKQuantityTypeIdentifier
 
+    /// A HealthKitQuantityIdentifier that describes the outcome's data type.
+    public var correlationIdentifier: String //HKCorrelationTypeIdentifier
+
+    public var isCorrelation: Bool
+    
     /// Determines what kind of query will be used to fetch data from HealthKit.
     public var quantityType: QuantityType
 
@@ -66,5 +71,21 @@ public struct OCKHealthKitLinkage: Equatable, Codable {
         self.quantityIdentifier = quantityIdentifier
         self.quantityType = quantityType
         self.unitString = unit.unitString
+        self.correlationIdentifier = HKCorrelationTypeIdentifier.food.rawValue
+        self.isCorrelation = false
+    }
+    
+    /// Initialize by specifying HealthKit types.
+    ///
+    /// - Parameter quantityIdentifier: A HealthKitQuantityIdentifier that describes the outcome's data type.
+    /// - Parameter quantityType: Determines what kind of query will be used to fetch data from HealthKit.
+    /// - Parameter unit: A HealthKit unit that will be associated with outcomes saved to and fetched from HealthKit.
+    public init(correlationIdentifier: HKCorrelationTypeIdentifier) {
+        self.correlationIdentifier = correlationIdentifier.rawValue
+        // FIXME: Just dummy values for now
+        self.quantityIdentifier = .stepCount
+        self.quantityType = .discrete
+        self.unitString = HKUnit.count().unitString
+        self.isCorrelation = true
     }
 }

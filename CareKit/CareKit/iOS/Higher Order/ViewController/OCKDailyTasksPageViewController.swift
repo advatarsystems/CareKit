@@ -161,8 +161,8 @@ open class OCKDailyTasksPageViewController: OCKDailyPageViewController {
     }
 }
 
-private class OCKEmptyLabel: OCKLabel {
-    override init(textStyle: UIFont.TextStyle, weight: UIFont.Weight) {
+public class OCKEmptyLabel: OCKLabel {
+    override public init(textStyle: UIFont.TextStyle, weight: UIFont.Weight) {
         super.init(textStyle: textStyle, weight: weight)
         text = loc("NO_TASKS")
     }
@@ -172,7 +172,7 @@ private class OCKEmptyLabel: OCKLabel {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func styleDidChange() {
+    public override func styleDidChange() {
         super.styleDidChange()
         textColor = style().color.label
     }

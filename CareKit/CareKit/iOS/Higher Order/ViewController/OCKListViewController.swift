@@ -41,7 +41,7 @@ open class OCKListViewController: UIViewController {
     // MARK: Properties
 
     /// The list view that displays the view controller's views.
-    var listView: OCKListView {
+    public var listView: OCKListView {
         guard let view = self.view as? OCKListView else { fatalError("Unsupported view type.") }
         return view
     }
