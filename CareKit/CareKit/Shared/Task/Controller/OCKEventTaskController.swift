@@ -77,7 +77,6 @@ open class OCKEventTaskController: OCKTaskController {
                             }
                         }
                     }
-                    
                 }
             }
         }

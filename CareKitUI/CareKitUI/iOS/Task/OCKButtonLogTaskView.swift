@@ -106,8 +106,8 @@ open class OCKButtonLogTaskView: OCKLogTaskView, UICollectionViewDelegate, UICol
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(Constants.estimatedCellHeight))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitem: item, count: 1)
-
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, repeatingSubitem: item, count: 1)
+        // horizontal(layoutSize: groupSize, subitem: item, count: 1)
         let section = NSCollectionLayoutSection(group: group)
         section.interGroupSpacing = directionalLayoutMargins.top
 
@@ -125,7 +125,6 @@ open class OCKButtonLogTaskView: OCKLogTaskView, UICollectionViewDelegate, UICol
         logButtonsCollectionView = makeCollectionView()
         logButtonsCollectionView.delegate = self
         logButtonsCollectionView.dataSource = self
-
         super.setup()
     }
 
