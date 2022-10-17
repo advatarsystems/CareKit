@@ -77,30 +77,40 @@ private extension OSLog {
 struct logger {
     private static let oslogger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "com.advatarsystems")
 
-    public static func info(_ message: String, functionName: String = #function,
+    public static func info(_ message: String,
+                            file: String = #file,
+                            functionName: String = #function,
                             lineNumber: Int = #line,
                             columnNumber: Int = #column) {
-        logger.oslogger.info("💙 INFO \(functionName)#\(lineNumber) \(message)")
+        let url = URL(filePath: file)
+        let fileName = url.lastPathComponent
+        logger.oslogger.info("💙 INFO \(fileName):\(functionName)@\(lineNumber) \(message)")
     }
-    
-    public static func verbose(_ message: String, functionName: String = #function,
-                            lineNumber: Int = #line,
-                            columnNumber: Int = #column) {
+
+    public static func verbose(_ message: String,
+                               file: String = #file,
+                               functionName: String = #function,
+                               lineNumber: Int = #line,
+                               columnNumber: Int = #column) {
         #if targetEnvironment(simulator)
-        logger.oslogger.info("💜 VERBOSE \(functionName)#\(lineNumber) \(message)")
+        logger.oslogger.info("💜 VERBOSE \(file)\(functionName)@\(lineNumber) \(message)")
         #endif
     }
 
-    public static func debug(_ message: String, functionName: String = #function,
-                            lineNumber: Int = #line,
-                            columnNumber: Int = #column) {
-        logger.oslogger.debug("💚 DEBUG \(functionName)#\(lineNumber) \(message)")
+    public static func debug(_ message: String,
+                             file: String = #file,
+                             functionName: String = #function,
+                             lineNumber: Int = #line,
+                             columnNumber: Int = #column) {
+        logger.oslogger.debug("💚 DEBUG \(file)\(functionName)@\(lineNumber) \(message)")
     }
     
-    public static func error(_ message: String, functionName: String = #function,
-                            lineNumber: Int = #line,
-                            columnNumber: Int = #column) {
-        logger.oslogger.error("❤️ ERROR \(functionName)#\(lineNumber) \(message)")
+    public static func error(_ message: String,
+                             file: String = #file,
+                             functionName: String = #function,
+                             lineNumber: Int = #line,
+                             columnNumber: Int = #column) {
+        logger.oslogger.error("❤️ ERROR \(file)\(functionName)@\(lineNumber) \(message)")
     }
 
 }

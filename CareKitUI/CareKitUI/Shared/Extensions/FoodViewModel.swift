@@ -136,9 +136,9 @@ public struct FoodViewModel: Identifiable, Equatable {
             if let urlString = metadataItem["HKMetadataKeyFoodPhotoURL"] as? String {
                 photoUrlString = urlString
                 photo = UIImage.fromURL(urlString)
-                print("META: \(name) has photo")
+                print("META: \(String(describing: name)) has photo")
             } else {
-                print("META: \(name) has NO photo")
+                print("META: \(String(describing: name)) has NO photo")
             }
 
         }

@@ -63,8 +63,6 @@ public protocol OCKEventStore: OCKReadOnlyEventStore, OCKTaskStore, OCKOutcomeSt
 public extension OCKReadOnlyEventStore {
     func fetchAnyEvents(taskID: String, query: OCKEventQuery, callbackQueue: DispatchQueue,
                         completion: @escaping OCKResultClosure<[OCKAnyEvent]>) {
-        logger.info("fetchAnyEvents \(taskID) dateInterval \(query.dateInterval)")
-
         fetchEvents(taskID: taskID, query: query, callbackQueue: callbackQueue) { completion($0.map { $0.map { $0.anyEvent } }) }
     }
 

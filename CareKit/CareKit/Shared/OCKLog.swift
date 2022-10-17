@@ -77,12 +77,16 @@ private extension OSLog {
 struct logger {
     private static let oslogger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "com.advatarsystems")
 
-    public static func info(_ message: String, functionName: String = #function,
+    public static func info(_ message: String,
+                            file: String = #file,
+                            functionName: String = #function,
                             lineNumber: Int = #line,
                             columnNumber: Int = #column) {
-        logger.oslogger.info("💙 INFO \(functionName)#\(lineNumber) \(message)")
+        let url = URL(filePath: file)
+        let fileName = url.lastPathComponent
+        logger.oslogger.info("💙 INFO \(fileName):\(functionName)@\(lineNumber) \(message)")
     }
-    
+
     public static func verbose(_ message: String, functionName: String = #function,
                             lineNumber: Int = #line,
                             columnNumber: Int = #column) {
