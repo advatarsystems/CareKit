@@ -31,6 +31,10 @@
 import Foundation
 import HealthKit
 
+extension HKQuantityTypeIdentifier: Identifiable {
+    public var id: RawValue { rawValue }
+}
+
 extension HKQuantityTypeIdentifier: Codable {}
 
 /// Describes how a task outcome values should be retrieved from HealthKit.

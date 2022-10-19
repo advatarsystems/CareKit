@@ -26,12 +26,14 @@ let package = Package(
         .package(url: "https://github.com/apple/FHIRModels.git", from: "0.1.0"),
         //.package(url: "https://github.com/antiguab/BAFluidView.git", from: "0.2.6"),
         .package(path: "../BAFluidView/"),
-        .package(url: "https://github.com/evgenyneu/SigmaSwiftStatistics.git", branch: "master")
+        .package(url: "https://github.com/evgenyneu/SigmaSwiftStatistics.git", branch: "master"),
+        .package(url: "https://github.com/advatar/DateTools", branch: "master")
     ],
     targets: [
         .target(
             name: "CareKit",
-            dependencies: ["CareKitUI", "CareKitStore","SigmaSwiftStatistics"],
+            dependencies: ["CareKitUI", "CareKitStore", "SigmaSwiftStatistics",
+                .product(name: "DateToolsSwift", package: "DateTools")],
             path: "CareKit/CareKit",
             exclude: ["Info.plist"]),
 

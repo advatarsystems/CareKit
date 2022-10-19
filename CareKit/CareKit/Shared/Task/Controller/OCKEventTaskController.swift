@@ -67,7 +67,7 @@ open class OCKEventTaskController: OCKTaskController {
                                 let count = outcome.values.count
                                 for index in 0..<count {
                                      if let metadata = outcome.metadata {
-                                         let item = metadata[index]
+                                         //let item = metadata[index]
                                          logger.info("META: OCKEventTaskController \(metadata)")
                                          if let food = try? FoodViewModel(dates[index], metadata: metadata, index: index) {
                                              foods.append(food)
